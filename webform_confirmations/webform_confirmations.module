@@ -72,7 +72,6 @@ function webform_confirmations_preprocess_webform_confirmation(&$vars) {
  */
 function webform_confirmations_form_webform_email_edit_form_alter(&$form, $form_state, $form_id) {
   if (module_exists('email_wrappers') && fundraiser_is_donation_type($form['node']['#value']->type)) {
-
     $node = $form['node']['#value'];
     $send_default = _webform_confirmation_send_on_settings($form_state);
     $send_options = array(
@@ -395,6 +394,7 @@ function _webform_confirmation_send_confirmation_mail($settings, $donation) {
       'node' => node_load($nid),
       'donation' => $donation,
     );
+    $params['donation'] = $donation;
     $params['settings']['html_message'] = token_replace($params['settings']['html_message'], $token_set);
     $params['settings']['text_message'] = token_replace($params['settings']['text_message'], $token_set);
 

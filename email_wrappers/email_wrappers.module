@@ -334,7 +334,15 @@ function email_wrappers_get_nodes() {
 function email_wrappers_mail($key, &$message, $params) {
 
   if ($key == 'wf_submission') {
+    $token_set = array(
+      'node' => isset($params['node']) ? $params['node'] : NULL,
+      'donation' => isset($params['donation']) ? $params['donation'] : NULL,
+    );
 
+    // fish the original message array out of params.
+    $message = $params['message'];
+    $message['module'] = 'email_wrappers';
+    $message['subject'] = token_replace($params['subject'], $token_set);
     // fish the original message array out of params.
     $message = $params['message'];
     $message['module'] = 'email_wrappers';
@@ -347,6 +355,13 @@ function email_wrappers_mail($key, &$message, $params) {
     $message['headers']['MIME-version'] = '1.0';
     $message['headers']['Content-Type'] = 'multipart/alternative; boundary="' . $message['params']['boundary'] . '"';
     $message['body'] = array(email_wrappers_render_email_body($eid, $message, $settings));
+  }
+  elseif(isset($params['mail']->subject)) {
+    $token_set = array(
+      'node' => isset($params['node']) ? $params['node'] : NULL,
+      'donation' => isset($params['donation']) ? $params['donation'] : NULL,
+    );
+    $params['mail']->subject = token_replace($params['mail']->subject, $token_set);
   }
 
 }
@@ -402,6 +417,7 @@ function email_wrappers_mail_alter(&$message) {
 
   // Processing an email constructed via the dev API.
   if ($message['module'] = 'email_wrappers' && isset($message['params']['module'], $message['params']['delta'])) {
+
     // format body & headers
     $message['params']['boundary'] = '----=_NextPart_' . md5(uniqid());
     $message['headers']['MIME-version'] = '1.0';
