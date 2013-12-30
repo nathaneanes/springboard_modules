@@ -83,7 +83,7 @@ function email_wrappers_preview_modal() {
 }
 
 function email_wrappers_form_email_wrapper_node_form_alter(&$form, &$form_state, $form_id) {
-  $token_set = array('node', 'donation');
+  $token_set = array('node');
 
   $form['tokenset'] = array(
       '#type' => 'fieldset',
