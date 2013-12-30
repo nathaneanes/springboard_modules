@@ -82,7 +82,30 @@ function email_wrappers_preview_modal() {
 
 }
 
+function email_wrappers_form_email_wrapper_node_form_alter(&$form, &$form_state, $form_id) {
+  $token_set = array('node', 'donation');
 
+  $form['tokenset'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Available tokens'),
+      '#description' => t('Tokens may be used in the "Subject," "HTML Message" and "Text Message" Fields.'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#weight' => 15,
+    );
+
+    // Then add any other token set as needed.
+    $form['tokenset']['tokens'] = array(
+      '#type' => 'item',
+      '#title' => t('Drupal tokens'),
+      '#description' => theme('token_tree', array('token_types' => $token_set, 'recursion_limit' => 2, 'click_insert' => FALSE)),
+    );
+    $form['tokenset']['webform_tokens'] = array(
+      '#type' => 'item',
+      '#title' => t('Webform tokens'),
+      '#description' => theme('webform_token_help', array()),
+    );
+}
 /**
  * Implements hook_form_FORM_ID_alter().
  *
@@ -332,16 +355,15 @@ function email_wrappers_get_nodes() {
  * Implements hook_mail().
  */
 function email_wrappers_mail($key, &$message, $params) {
-
   if ($key == 'wf_submission') {
-    $token_set = array(
-      'node' => isset($params['node']) ? $params['node'] : NULL,
-      'donation' => isset($params['donation']) ? $params['donation'] : NULL,
-    );
 
     // fish the original message array out of params.
     $message = $params['message'];
     $message['module'] = 'email_wrappers';
+    $token_set = array(
+      'node' => isset($params['node']) ? $params['node'] : NULL,
+      'donation' => isset($params['donation']) ? $params['donation'] : NULL,
+    );
     $message['subject'] = token_replace($params['subject'], $token_set);
     // fish the original message array out of params.
     $message = $params['message'];
@@ -378,6 +400,11 @@ function email_wrappers_mail_alter(&$message) {
   if ($message['id'] == 'webform_submission' && $message['module'] == 'webform') {
     $eid = $message['params']['email']['eid'];
     $nid = $message['params']['email']['nid'];
+    $token_set = array(
+      'node' => isset($nid) ? node_load($nid) : NULL,
+      'donation' => isset($message['params']['donation']) ? $message['params']['donation'] : NULL,
+    );
+    $message['subject'] = token_replace($message['subject'], $token_set);
 
     if (!isset($message['params']['settings'])) {
       $settings = email_wrappers_load_settings($nid, $eid);
@@ -385,7 +412,6 @@ function email_wrappers_mail_alter(&$message) {
     else {
       $settings = $message['params']['settings'];
     }
-
     if ($settings) {
       $extra = $settings['extra'];
       $params = $message['params'];
@@ -422,7 +448,11 @@ function email_wrappers_mail_alter(&$message) {
     $message['params']['boundary'] = '----=_NextPart_' . md5(uniqid());
     $message['headers']['MIME-version'] = '1.0';
     $message['headers']['Content-Type'] = 'multipart/alternative; boundary="' . $message['params']['boundary'] . '"';
-    $message['subject'] = $message['params']['mail']->subject;
+    $token_set = array(
+      'node' => isset($message['params']['node']) ? $message['params']['node'] : NULL,
+      'donation' => isset($message['params']['donation']) ? $message['params']['donation'] : NULL,
+    );
+    $message['subject'] = token_replace($message['params']['mail']->subject, $token_set);
     $message['body'] = array(email_wrappers_render_email_body(FALSE, $message));
   }
 }
@@ -445,7 +475,6 @@ function email_wrappers_mail_alter(&$message) {
  * Email message body, formatted for multipart MIME.
  */
 function email_wrappers_render_email_body($eid, $message, $settings = array()) {
-
   $eid = isset($message['params']['email']['eid']) ? $message['params']['email']['eid'] : FALSE;
   $boundary = $message['params']['boundary'];
   // TODO: filter HTML by field input type where appropriate.
@@ -477,8 +506,12 @@ $html_raw
 
 ";
 
-  // TODO: if we need to do token module token replacement this would probably be a good place for it.
-  // perform webform token replacement.
+  $token_set = array(
+    'node' => isset($message['params']['node']) ? $message['params']['node'] : NULL,
+    'donation' => isset($message['params']['donation']) ? $message['params']['donation'] : NULL,
+  );
+  $multi_body = token_replace($multi_body, $token_set);
+
   if ($eid) {
     $multi_body = _webform_filter_values($multi_body, $message['params']['node'], $message['params']['submission'], $message['params']['node']->webform['emails'][$eid], FALSE, TRUE);
   }
