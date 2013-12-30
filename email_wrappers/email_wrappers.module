@@ -78,8 +78,8 @@ function email_wrappers_preview_modal() {
       $preview .= '</fieldset>';
     }
   }
+  
   ctools_modal_render($title, $preview);
-
 }
 
 function email_wrappers_form_email_wrapper_node_form_alter(&$form, &$form_state, $form_id) {

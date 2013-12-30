@@ -72,7 +72,8 @@ function webform_confirmations_preprocess_webform_confirmation(&$vars) {
  */
 function webform_confirmations_form_webform_email_edit_form_alter(&$form, $form_state, $form_id) {
   $node = $form['node']['#value'];
-  if (module_exists('email_wrappers') && fundraiser_is_donation_type($form['node']['#value']->type)) {
+  $is_donation = fundraiser_is_donation_type($form['node']['#value']->type);
+  if (module_exists('email_wrappers') && !empty($is_donation)) {
     $send_default = _webform_confirmation_send_on_settings($form_state);
     $send_options = array(
       0 => t('Always'),
@@ -105,12 +106,14 @@ function webform_confirmations_form_webform_email_edit_form_alter(&$form, $form_
       '#type' => 'item',
       '#title' => t('Drupal tokens'),
       '#description' => theme('token_tree', array('token_types' => $token_set, 'recursion_limit' => 2, 'click_insert' => FALSE)),
-      '#states' => array(
+    );
+    if(empty($is_donation)) {
+      $form['template']['tokens']['tokens']['#states'] = array(
         'invisible' => array(
          ':input[name="email_wrappers_email_template"]' => array('value' => 0),
         ),
-      ),
-    );
+      );
+    }
     $form['template']['tokens']['webform_tokens'] = array(
       '#type' => 'item',
       '#title' => t('Webform tokens'),
