@@ -1,8 +1,9 @@
 <?php
 /**
  * @file
- * Test interaction between user accounts and webform fields.
+ * Test webform goals.
  */
+
 class WebformGoalsIntegratedTestSetup extends DrupalWebTestCase {
 
   protected $users;
@@ -14,7 +15,6 @@ class WebformGoalsIntegratedTestSetup extends DrupalWebTestCase {
     parent::setUp('webform_goals');
 
     // Create user accounts.
-
     // Create a webform editor to test creating and editing own content.
     $permissions['editor'] = array(
       'access content',
@@ -41,7 +41,7 @@ class WebformGoalsIntegratedTestSetup extends DrupalWebTestCase {
 }
 
 /**
- * Webform user testing class.
+ * Webform goals testing class.
  */
 class WebformGoalsIntegratedTestCase extends WebformGoalsIntegratedTestSetup {
 
@@ -66,16 +66,14 @@ class WebformGoalsIntegratedTestCase extends WebformGoalsIntegratedTestSetup {
     );
     $this->drupalPost('node/add/webform', $edit, t('Save'));
 
-    // TODO: add component.
-
-    // TODO: webform created, make goals.
-
+    // @todo Add component.
+    // @todo Webform created, make goals.
   }
 
 }
 
 /**
- * Webform user testing class.
+ * Webform goals testing class.
  */
 class WebformGoalsUnitTestCase extends WebformGoalsIntegratedTestSetup {
 
@@ -86,7 +84,7 @@ class WebformGoalsUnitTestCase extends WebformGoalsIntegratedTestSetup {
     return array(
       'name' => t('Webform Goals Unit Cases'),
       'description' => t('Individually tests specific functions.'),
-      'group' => t('Webform User'),
+      'group' => t('Webform goals'),
     );
   }
 
@@ -94,8 +92,8 @@ class WebformGoalsUnitTestCase extends WebformGoalsIntegratedTestSetup {
    * Unit test helper functions.
    */
   public function testWebformGoalsHelperFunctions() {
-    // TODO: test goal progress calculations
-    // TODO: test token replacement
+    // @todo Test goal progress calculations.
+    // @todo Test token replacement.
   }
 
 }
