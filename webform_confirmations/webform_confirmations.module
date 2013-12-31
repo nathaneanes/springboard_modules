@@ -399,14 +399,13 @@ function _webform_confirmation_send_confirmation_mail($settings, $donation) {
     $message = $params['message'];
     $params['donation'] = $donation;
 
-    //moved to email wrappers module
     // Email Wrappers handles webform token replacement so all we need to do is pick off order tokens.
-    //$token_set = array(
-    // 'node' => node_load($nid),
-    // 'donation' => $donation,
-    //);
-    // $params['settings']['html_message'] = token_replace($params['settings']['html_message'], $token_set);
-    // $params['settings']['text_message'] = token_replace($params['settings']['text_message'], $token_set);
+    $token_set = array(
+     'node' => node_load($nid),
+     'donation' => $donation,
+    );
+     $params['settings']['html_message'] = token_replace($params['settings']['html_message'], $token_set);
+     $params['settings']['text_message'] = token_replace($params['settings']['text_message'], $token_set);
 
     drupal_mail('email_wrappers', 'wf_submission', $message['to'], user_preferred_language($account), $params);
     unset($mail_queue[$nid][$eid]);
