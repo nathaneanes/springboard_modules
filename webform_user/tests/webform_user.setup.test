@@ -1,7 +1,9 @@
 <?php
 /**
  * @file
- * Webform user module setup, designed to provide a standard environment for children tests.
+ * Webform user module setup.
+ *
+ * This is designed to provide a standard environment for children tests.
  */
 
 /**
@@ -25,8 +27,7 @@ class WebformUserSetup extends DrupalWebTestCase {
     // Setup the environment to a default standard.
     $this->_webform_user_setup_user_profile();
     $this->_webform_user_create_type();
-    //$this->_webform_user_create_node();
-
+    // $this->_webform_user_create_node();
     // Create a webform editor to test creating and editing own content.
     $permissions['editor'] = array(
       'access content',
@@ -55,7 +56,8 @@ class WebformUserSetup extends DrupalWebTestCase {
       'configure webform emails',
     );
 
-    // Make sure the new permissions for the content type get added to the permission cache.
+    // Make sure the new permissions for the content type get added
+    // to the permission cache.
     $this->checkPermissions(array('create petition content'), TRUE);
 
     foreach ($permissions as $user_key => $role_permissions) {
@@ -181,6 +183,12 @@ class WebformUserSetup extends DrupalWebTestCase {
 
   }
 
+  /**
+   * Creates a user with profile field values and saves it.
+   *
+   * @return false|object
+   *   The user object if successful.
+   */
   protected function webformUserCreateUser() {
     // Create a user to test with.
     $user = $this->drupalCreateUser(array('access content'));
@@ -439,4 +447,3 @@ class WebformUserSetup extends DrupalWebTestCase {
     return $profile_fields;
   }
 }
-
