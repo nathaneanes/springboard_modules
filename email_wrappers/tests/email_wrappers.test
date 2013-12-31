@@ -7,6 +7,9 @@
 
 class EmailWrappersTestCase extends DrupalWebTestCase {
 
+  /**
+   * Implements getInfo().
+   */
   public static function getInfo() {
     return array(
       'name' => 'Email Wrappers',
@@ -16,11 +19,11 @@ class EmailWrappersTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Implementation of setUp().
+   * Implements setUp().
    */
   public function setUp() {
     parent::setUp(array('webform', 'email_wrappers', 'ctools'));
-    // jam email system
+    // Jam email system.
     variable_set('mail_system', array('default-system' => 'TestingMailSystem'));
 
     $this->privileged_user = $this->drupalCreateUser(array(
@@ -34,11 +37,14 @@ class EmailWrappersTestCase extends DrupalWebTestCase {
     $this->drupalLogin($this->privileged_user);
   }
 
+  /**
+   * Tests email wrappers settings on a webform.
+   */
   public function testEmaplWrappersSettings() {
-    //create test webform
+    // Create test webform.
     $this->WebformCreate();
 
-    // create test email wrapper
+    // Create test email wrapper.
     $edit = array(
       'title' => 'Test Email Wrapper',
       'email_wrapper_from_name[und][0][value]' => 'Email Wrappers Test',
@@ -46,7 +52,7 @@ class EmailWrappersTestCase extends DrupalWebTestCase {
       'email_wrapper_reply_email[und][0][value]' => 'replyto@example.com',
       'email_wrapper_subject[und][0][value]' => 'Test webform submission mail',
       'email_wrapper_bcc_email[und][0][value]' => 'bcc0@example.com',
-      //'email_wrapper_bcc_email[und][1][value]' => 'bcc1@example.com',
+      // 'email_wrapper_bcc_email[und][1][value]' => 'bcc1@example.com',
       'email_wrapper_html_template[und][0][value]' => '<p>Thanks for the submission (HTML)</p>%html_message',
       'email_wrapper_html_template[und][0][format]' => 'filtered_html',
       'email_wrapper_html_message[und][0][value]' => '<p>This is an html message</p>',
@@ -58,22 +64,21 @@ class EmailWrappersTestCase extends DrupalWebTestCase {
     $email_wrapper = node_load(2);
     $this->assertFalse($email_wrapper->status, t('Email Wrapper unpublished by default'));
 
-    // confirm preview button?
-
-    // Confirm settingsf UI available.
+    // @todo Confirm preview button?
+    // @todo Confirm settingsf UI available.
     $this->drupalGet('node/1/webform/emails');
 
-    // create email
+    // Create email.
     $edit = array(
       'email_custom' => '',
       'email_option' => 'component',
       'email_component' => 1,
     );
     $this->drupalPost('node/1/webform/emails', $edit, t('Add'));
-    // confirm settings ui available
+    // Confirm settings UI available.
     $this->assertOptionSelected('edit-email-wrappers-email-template', 0, t('Email template selection field present on form with no default selected.'));
 
-    // confirm select ajax populates fields
+    // Confirm select ajax populates fields.
     $edit['email_wrappers_email_template'] = 2;
     $this->drupalPostAJAX(NULL, $edit, 'email_wrappers_email_template');
     $this->assertFieldByName('email_wrappers_bcc', 'bcc0@example.com', t('BCC default inherited from template selection'));
@@ -83,7 +88,7 @@ class EmailWrappersTestCase extends DrupalWebTestCase {
     $this->assertFieldByName('email_wrappers_html_message', '<p>This is an html message</p>', t('HTML message default inherited from template selection'));
     $this->assertFieldByName('email_wrappers_text_message', 'This is a text message', t('Text message default inherited from template selection'));
 
-    // save
+    // Save.
     $edit = array(
       'email_wrappers_email_template' => 2,
       'email_custom' => '',
@@ -99,16 +104,16 @@ class EmailWrappersTestCase extends DrupalWebTestCase {
       'from_address_component' => 1,
       'from_name_option' => 'custom',
       'from_name_custom' => 'Email Wrappers Test',
-      //'from_name_component' => 1,
+      // 'from_name_component' => 1,
       'email_wrappers_html_message' => '<p>Customized html message</p>',
       'email_wrappers_text_message' => 'Customized text message',
     );
     $this->drupalPost(NULL, $edit, t('Save e-mail settings'));
 
-    // submit webform
+    // Submit webform.
     $this->WebformPost();
 
-    // confirm email sent
+    // Confirm email sent.
     $mails = $this->drupalGetMails();
     foreach ($mails as $mail) {
       // debug(print_r($mail, TRUE));
@@ -134,21 +139,21 @@ class EmailWrappersTestCase extends DrupalWebTestCase {
         $this->assertTrue($text_message_legit, t('Email text message populated'));
       }
     }
-    // confirm mail headers (type, to, from, replyto, bcc)
-    // confirm html content
-    // confirm text content
-
-
-
+    // @todo Confirm mail headers (type, to, from, replyto, bcc).
+    // @todo Confirm html content.
+    // @todo Confirm text content.
   }
 
+  /**
+   * Creates a webform and adds a component.
+   */
   private function WebformCreate() {
     $edit = array();
     $edit['title'] = 'Webform Confirmation test webform';
     $edit["body[und][0][value]"] = $this->randomName(16);
     $this->drupalPost('node/add/webform', $edit, t('Save'));
-    // test webform is now node 1
-    // add webform component
+    // Test webform is now node 1.
+    // Add webform component.
     $component = array(
       'nid' => 1,
       'cid' => 1,
@@ -166,6 +171,9 @@ class EmailWrappersTestCase extends DrupalWebTestCase {
     drupal_write_record('webform_component', $component);
   }
 
+  /**
+   * Submits a webform.
+   */
   private function WebformPost() {
     $edit = array();
     $edit["submitted[mail]"] = 'example@example.com';
