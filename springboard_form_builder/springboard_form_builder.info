@@ -1,0 +1,4 @@
+name = Springboard Form Builder
+description = Enhancements for the Form Builder Webform module.
+core = 7.x
+dependencies[] = form_builder_webform

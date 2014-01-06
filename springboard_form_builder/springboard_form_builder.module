@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_node_view().
+ */
+function springboard_form_builder_node_view($node, $view_mode, $langcode) {
+  global $user;
+  if (in_array($node->type, webform_variable_get('webform_node_types')) && user_access('alter webform components', $user)) {
+   $node->content = form_builder_webform_components_page($node);
+   drupal_add_css(drupal_get_path('module', 'springboard_form_builder') . '/springboard.form.builder.css', array('group' => CSS_THEME, 'weight => 999'));
+ }
+}
+
+/**
+ * Implements hook_js_alter().
+ */
+function springboard_form_builder_js_alter(&$javascript) {
+   global $user;
+   $node = menu_get_object();
+   if (isset($node) && in_array($node->type, webform_variable_get('webform_node_types')) && user_access('alter webform components', $user)) {
+     unset($javascript[drupal_get_path('theme', 'springboard_base') . '/js/jquery-ui.min.js']);
+   }  
+}

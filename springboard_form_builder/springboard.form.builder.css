@@ -1,0 +1,45 @@
+
+.form-builder-element .webform-component-fieldset {
+  clear:none;
+  float:none;
+  width: auto;
+}
+
+.form-builder-element .control-group {
+  width:auto;
+  clear:left;
+  float:none;
+}
+
+.form-builder-element .form-builder-element-date .control-group {
+  width:auto;
+  clear:both;
+  float:left;
+}
+
+#form-builder-wrapper.with-palette #form-builder-fields {
+  float: none;
+  padding-left: 0px;
+  width: auto;
+}
+
+#form-builder-wrapper.with-palette #form-builder {
+  float: none;
+  margin-right: auto;
+  padding-right: auto;
+  border-right: none;
+  position: relative;
+}
+
+#form-builder-field-palette ul.form-builder-fields {
+  width: auto;
+  padding: 0;
+  background: #fff;
+}
+
+#form-builder-field-palette ul li {
+  background-color: #fff;
+  padding: 2px 5px 2px 28px;
+  position: relative;
+  z-index: 100;
+}
