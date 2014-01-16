@@ -362,12 +362,8 @@ function email_wrappers_mail($key, &$message, $params) {
     $message['module'] = 'email_wrappers';
     $token_set = array(
       'node' => isset($params['node']) ? $params['node'] : NULL,
-      'donation' => isset($params['donation']) ? $params['donation'] : NULL,
     );
     $message['subject'] = token_replace($params['subject'], $token_set);
-    // fish the original message array out of params.
-    $message = $params['message'];
-    $message['module'] = 'email_wrappers';
 
     $eid = $params['email']['eid'];
     $nid = $params['email']['nid'];
@@ -381,7 +377,6 @@ function email_wrappers_mail($key, &$message, $params) {
   elseif(isset($params['mail']->subject)) {
     $token_set = array(
       'node' => isset($params['node']) ? $params['node'] : NULL,
-      'donation' => isset($params['donation']) ? $params['donation'] : NULL,
     );
     $params['mail']->subject = token_replace($params['mail']->subject, $token_set);
   }
@@ -402,7 +397,6 @@ function email_wrappers_mail_alter(&$message) {
     $nid = $message['params']['email']['nid'];
     $token_set = array(
       'node' => isset($nid) ? node_load($nid) : NULL,
-      'donation' => isset($message['params']['donation']) ? $message['params']['donation'] : NULL,
     );
     $message['subject'] = token_replace($message['subject'], $token_set);
 
@@ -427,7 +421,6 @@ function email_wrappers_mail_alter(&$message) {
       // donation is successful or if it fails.
       //
       // Note: other modules may set extra['send_on_submission'] to FALSE to defer sending an email.
-
       if (!isset($extra['send_on_submission']) || $extra['send_on_submission'] === TRUE) {
         drupal_mail('email_wrappers', 'wf_submission', $message['to'], user_preferred_language($account), $params);
       }
@@ -450,7 +443,6 @@ function email_wrappers_mail_alter(&$message) {
     $message['headers']['Content-Type'] = 'multipart/alternative; boundary="' . $message['params']['boundary'] . '"';
     $token_set = array(
       'node' => isset($message['params']['node']) ? $message['params']['node'] : NULL,
-      'donation' => isset($message['params']['donation']) ? $message['params']['donation'] : NULL,
     );
     $message['subject'] = token_replace($message['params']['mail']->subject, $token_set);
     $message['body'] = array(email_wrappers_render_email_body(FALSE, $message));
@@ -508,7 +500,6 @@ $html_raw
 
   $token_set = array(
     'node' => isset($message['params']['node']) ? $message['params']['node'] : NULL,
-    'donation' => isset($message['params']['donation']) ? $message['params']['donation'] : NULL,
   );
   $multi_body = token_replace($multi_body, $token_set);
 

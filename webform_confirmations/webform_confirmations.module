@@ -76,7 +76,7 @@ function webform_confirmations_form_webform_email_edit_form_alter(&$form, $form_
   if (module_exists('email_wrappers') && !empty($is_donation)) {
     $send_default = _webform_confirmation_send_on_settings($form_state);
     $send_options = array(
-      0 => t('Always'),
+      0 => t('Always (donation tokens disabled)'),
       1 => t('Donation succeeds'),
       2 => t('Donation fails'),
     );
@@ -199,7 +199,6 @@ function webform_confirmations_fundraiser_donation_success($donation) {
 
     if ($settings) {
       foreach ($settings as $mail_config) {
-
         if (isset($mail_config['extra']['send_on_donation_success']) && $mail_config['extra']['send_on_donation_success'] === TRUE) {
           _webform_confirmation_send_confirmation_mail($mail_config, $donation);
         }
@@ -404,8 +403,9 @@ function _webform_confirmation_send_confirmation_mail($settings, $donation) {
      'node' => node_load($nid),
      'donation' => $donation,
     );
-     $params['settings']['html_message'] = token_replace($params['settings']['html_message'], $token_set);
-     $params['settings']['text_message'] = token_replace($params['settings']['text_message'], $token_set);
+    $params['settings']['html_message'] = token_replace($params['settings']['html_message'], $token_set);
+    $params['settings']['text_message'] = token_replace($params['settings']['text_message'], $token_set);
+    $params['subject'] = token_replace($params['subject'], $token_set);
 
     drupal_mail('email_wrappers', 'wf_submission', $message['to'], user_preferred_language($account), $params);
     unset($mail_queue[$nid][$eid]);
