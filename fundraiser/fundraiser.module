@@ -638,6 +638,28 @@ function _fundraiser_donation_settings_form(&$form, &$form_state) {
       number_format($node->minimum_donation_amount, 2) : variable_get('fundraiser_default_minimum', 10.00),
   );
 
+  if (isset($node->nid)) {
+    $text = variable_get('fundraiser_submit_text');
+    if (isset($text[$node->nid])) {
+      $value =  $text[$node->nid];
+    }
+    else{
+      $button = isset($node->webform['submit_text']) ? $node->webform['submit_text'] : 'Submit';
+      $value = t('By clicking %submit your credit card will be securely processed.', array('%submit' => $button));
+    }
+  }
+  else {
+    $value = t('By clicking Submit your credit card will be securely processed.');
+  }
+
+  $form['fundraiser_settings']['submit_text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Submit help text'),
+    '#description' => t('Enter help text that appears below submit button'),
+    '#default_value' => $value,
+  );
+
+
   $form['#validate'][] = '_fundraiser_form_amounts_validate';
   // TODO this should probably go on a different table, not here.
   /* Hidden fields. These are set later on other forms, included here to prevent overwrite during saves. */
