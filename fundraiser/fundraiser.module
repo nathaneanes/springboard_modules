@@ -638,27 +638,19 @@ function _fundraiser_donation_settings_form(&$form, &$form_state) {
       number_format($node->minimum_donation_amount, 2) : variable_get('fundraiser_default_minimum', 10.00),
   );
 
+  //custom help text for submit button
   if (isset($node->nid)) {
     $text = variable_get('fundraiser_submit_text');
     if (isset($text[$node->nid])) {
       $value =  $text[$node->nid];
     }
-    else{
-      $button = isset($node->webform['submit_text']) ? $node->webform['submit_text'] : 'Submit';
-      $value = t('By clicking %submit your credit card will be securely processed.', array('%submit' => $button));
-    }
   }
-  else {
-    $value = t('By clicking Submit your credit card will be securely processed.');
-  }
-
   $form['fundraiser_settings']['submit_text'] = array(
     '#type' => 'textfield',
-    '#title' => t('Submit help text'),
-    '#description' => t('Enter help text that appears below submit button'),
-    '#default_value' => $value,
+    '#title' => t('Custom help text for the submit button.'),
+    '#description' => t('Enter help text that appears above the submit button. The token "%submit_text" may be used get the submit button\'s text value. The submit button\'s text value may be customized in advanced settings, found under the "webform > form settings" tab.'),
+    '#default_value' => isset($value) ? $value : t('By clicking %submit_text your credit card will be securely processed.'),
   );
-
 
   $form['#validate'][] = '_fundraiser_form_amounts_validate';
   // TODO this should probably go on a different table, not here.
@@ -2463,6 +2455,13 @@ function _fundraiser_create_fundraiser($fundraiser) {
   $fundraiser_data = FALSE;
   if (isset($fundraiser['nid'])) {
     $fundraiser_data = _fundraiser_get_fundraiser_by_nid($fundraiser['nid']);
+
+    if (!empty($fundraiser['submit_text'])) {
+      variable_set('fundraiser_submit_text', array($fundraiser['nid'] => $fundraiser['submit_text']));
+    }
+    else {
+      variable_del('fundraiser_submit_text', array($fundraiser['nid']));
+    }
   }
   if (!$fundraiser_data) {
     // Implode donation amounds for saving.
@@ -2526,6 +2525,12 @@ function _fundraiser_update_fundraiser($fundraiser) {
   $fundraiser_data = FALSE;
   if (isset($fundraiser['nid'])) {
     $fundraiser_data = _fundraiser_get_fundraiser_by_nid($fundraiser['nid']);
+    if (!empty($fundraiser['submit_text'])) {
+      variable_set('fundraiser_submit_text', array($fundraiser['nid'] => $fundraiser['submit_text']));
+    }
+    else {
+      variable_del('fundraiser_submit_text', array($fundraiser['nid']));
+    }
   }
   if (!$fundraiser_data) {
     _fundraiser_create_fundraiser($fundraiser);

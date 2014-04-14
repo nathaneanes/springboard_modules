@@ -534,11 +534,20 @@ function fundraiser_webform_fundraiser_donation_form($form, $form_state) {
   // Modify form displays according to callback settings.
   $form['#calling_module'] = 'fundraiser_webform';
   fundraiser_display_form_fields('fundraiser_webform', $form, $form_state);
-
+  $submit_text = !empty($node->webform['submit_text']) ? strtoupper($node->webform['submit_text']) : 'SUBMIT';
+  $text = variable_get('fundraiser_submit_text', array(t('By clicking !text your credit card will be securely processed.', array('!text' => $submit_text))));
+  if(isset($text[$node->nid])) {
+    $message = $text[$node->nid];
+  }
+  else {
+    $message = $text[0];
+  }
   // And lastly add a user facing message for submit.
   $form['submit']['#suffix'] = '<div class="fundraiser_submit_message">' .
     theme('image', array('path' => drupal_get_path('module', 'fundraiser_webform') . '/images/padlock.png')) .
-    t('By clicking SUBMIT DONATION your credit card will be securely processed.') .
+
+     str_replace('%submit_text', $submit_text, $message)
+     .
     '</div>';
   $form['#after_build'][] = 'fundraiser_webform_fundraiser_donation_form_after_build';
   return $form;
