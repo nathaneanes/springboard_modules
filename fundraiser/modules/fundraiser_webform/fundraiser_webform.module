@@ -567,20 +567,22 @@ function fundraiser_webform_fundraiser_donation_form($form, $form_state) {
   $form['#calling_module'] = 'fundraiser_webform';
   fundraiser_display_form_fields('fundraiser_webform', $form, $form_state);
   $submit_text = !empty($node->webform['submit_text']) ? strtoupper($node->webform['submit_text']) : 'SUBMIT';
-  $text = variable_get('fundraiser_submit_text', array(t('By clicking !text your credit card will be securely processed.', array('!text' => $submit_text))));
+  $text = variable_get('fundraiser_submit_text', array());
   if(isset($text[$node->nid])) {
     $message = $text[$node->nid];
   }
   else {
-    $message = $text[0];
+    $message = t('By clicking %submit_text your credit card will be securely processed.');
   }
   // And lastly add a user facing message for submit.
-  $form['submit']['#suffix'] = '<div class="fundraiser_submit_message">' .
-    theme('image', array('path' => drupal_get_path('module', 'fundraiser_webform') . '/images/padlock.png')) .
+  if (isset($message) && strlen(trim($message)) > 0) {
+    $form['submit']['#suffix'] = '<div class="fundraiser_submit_message">' .
+      theme('image', array('path' => drupal_get_path('module', 'fundraiser_webform') . '/images/padlock.png')) .
 
-     str_replace('%submit_text', $submit_text, $message)
-     .
-    '</div>';
+       str_replace('%submit_text', $submit_text, $message)
+       .
+      '</div>';
+  }
   $form['#after_build'][] = 'fundraiser_webform_fundraiser_donation_form_after_build';
   return $form;
 }
@@ -1235,25 +1237,31 @@ function _fundraiser_webform_payment_method_array_filter_enabled($method_setting
   return !empty($method_settings['status']);
 }
 
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ * Add custom submit button description text.
+ */
 function fundraiser_webform_form_webform_configure_form_alter(&$form, &$form_state) {
   //custom help text for submit button
-  if (isset($form['#node']->nid)) {
-    $text = variable_get('fundraiser_submit_text');
-    if (isset($text[$form['#node']->nid])) {
-      $value =  $text[$form['#node']->nid];
+  if(fundraiser_is_donation_type($form['#node']->type)) {
+    if (isset($form['#node']->nid)) {
+      $text = variable_get('fundraiser_submit_text');
+      if (isset($text[$form['#node']->nid])) {
+        $value =  $text[$form['#node']->nid];
+      }
     }
+    $form['advanced']['submit_description'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Custom help text for the submit button.'),
+      '#description' => t('Enter help text that appears above the submit button. The token "%submit_text" may be used get the submit button\'s text value.' ),
+      '#default_value' => isset($value) ? $value : t('By clicking %submit_text your credit card will be securely processed.'),
+    );
+    $form['#submit'][] = 'fundraiser_webform_submit_text_submit';
   }
-  $form['advanced']['submit_description'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Custom help text for the submit button.'),
-    '#description' => t('Enter help text that appears above the submit button. The token "%submit_text" may be used get the submit button\'s text value.' ),
-    '#default_value' => isset($value) ? $value : t('By clicking %submit_text your credit card will be securely processed.'),
-  );
-  $form['#submit'][] = 'fundraiser_webform_submit_text_submit';
 }
 
 function fundraiser_webform_submit_text_submit(&$form, &$form_state) {
-    if (!empty($form_state['values']['submit_description'])) {
+    if (isset($form_state['values']['submit_description'])) {
       variable_set('fundraiser_submit_text', array($form['#node']->nid => $form_state['values']['submit_description']));
     }
     else {
