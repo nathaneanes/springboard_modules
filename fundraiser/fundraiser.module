@@ -1019,11 +1019,13 @@ function fundraiser_fundraiser_field_info() {
     '#title' => t('First Name'),
     '#type' => 'textfield',
     '#required' => 1,
+    '#validate_callback' => '_fundraiser_special_chars_validate',
   );
   $fields['donor_information']['last_name'] = array(
     '#title' => t('Last Name'),
     '#type' => 'textfield',
     '#required' => 1,
+    '#validate_callback' => '_fundraiser_special_chars_validate',
   );
   $fields['donor_information']['mail'] = array(
     '#title' => t('E-mail address'),
@@ -1040,16 +1042,19 @@ function fundraiser_fundraiser_field_info() {
     '#title' => t('Address'),
     '#type' => 'textfield',
     '#required' => 1,
+    '#validate_callback' => '_fundraiser_special_chars_validate',
   );
   $fields['billing_information']['address_line_2'] = array(
     '#title' => t('Address Line 2'),
     '#type' => 'textfield',
     '#required' => 0,
+    '#validate_callback' => '_fundraiser_special_chars_validate',
   );
   $fields['billing_information']['city'] = array(
     '#title' => t('City'),
     '#type' => 'textfield',
     '#required' => 1,
+    '#validate_callback' => '_fundraiser_special_chars_validate',
   );
   $fields['billing_information']['country'] = array(
     '#title' => t('Country'),
@@ -1221,6 +1226,15 @@ function _fundraiser_email_field_validate($form, $form_state, $submission_fields
 }
 
 /**
+ * Convert special chars in billing fields so that they don't break xml calls
+ */
+function _fundraiser_special_chars_validate($form, $form_state, $submission_fields, $value, $field_name) {
+  $element = _fundraiser_get_form_field($form, $field_name);
+  $value = htmlspecialchars($value);
+  form_set_value($element, $value, $form_state);
+}
+
+/**
  * Validation callback for field other_amount. Called during form validation.
  */
 function _fundraiser_quantity_field_validate($form, $form_state, $submission_fields, $value) {
@@ -1339,7 +1353,7 @@ function fundraiser_validate_form_fields($form, $form_state, $submission_fields,
     if (isset($submission_fields[$child]) && isset($field_info[$child]['#validate_callback'])
        && function_exists($field_info[$child]['#validate_callback'])) {
       $error_messages = call_user_func($field_info[$child]['#validate_callback'], $form, $form_state,
-        $submission_fields, $submission_fields[$child]);
+        $submission_fields, $submission_fields[$child], $child);
       if (isset($error_messages) && !empty($error_messages)) {
         foreach ($error_messages as $form_field => $error_message) {
           // Set the error.
