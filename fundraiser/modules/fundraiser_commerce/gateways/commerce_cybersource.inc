@@ -84,6 +84,7 @@ function commerce_cybersource_fundraiser_commerce_charge($payment_method, $donat
   if ($result !== FALSE) {
     $success = TRUE;
   }
+  _fundraiser_commerce_charge_submit_form_process($success, $payment_method, $pane_values, $donation);
   return $success;
 }
 
