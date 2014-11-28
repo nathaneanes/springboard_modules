@@ -19,6 +19,7 @@ build:
         before:
             - echo $SCRUTINIZER_BRANCH
             - echo $SCRUTINIZER_SHA1
+            - git rev-parse HEAD
             - echo $SCRUTINIZER_INSPECTION_UUID
             - echo $SCRUTINIZER_PROJECT
             - echo $SCRUTINIZER
@@ -27,21 +28,16 @@ build:
             - echo $SSH_ASKPASS
             - echo $GITHUB_USERNAME
             - echo $GITHUB_ACCESS_TOKEN
-            - which composer
-            - which drush
             - which git
             - which curl
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
+            - 'composer global require drush/drush:6.5.0'
             - 'pwd'
             - 'echo `git rev-parse HEAD` > ../modules-commit'
             - 'ls -lah'
             - 'cd ..'
             - 'ls -lah'
             - 'mv build repo'
-            - 'ls -lah'
-            - 'curl -sS https://getcomposer.org/installer | php'
-            - 'ls -lah'
-            - 'php composer.phar global require drush/drush:6.5.0'
             - 'ls -lah'
             - 'git clone --branch 7.x-4.x git@github.com:JacksonRiver/Springboard-Build.git build-tools'
             - 'echo "\nprojects[springboard][download][branch] = `cat modules-commit`" >> build-tools/springboard-core.make'
