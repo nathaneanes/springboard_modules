@@ -31,7 +31,7 @@ build:
         override:
             - 'cd build'
             - 'chmod -R 777 sites/default'
-            - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --acount-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
+            - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --account-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
             - 'drush -l http://local.dev cc all'
             - 'drush -l http://local.dev status'
             - 'curl --max-time 10 http://local.dev | grep "DONATE"'
