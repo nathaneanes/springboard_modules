@@ -23,7 +23,7 @@ build:
             - 'mv build repo'
             - 'ls -lah'
             - 'git clone --branch 7.x-4.x https://github.com/JacksonRiver/Springboard-Build.git build-tools'
-            - 'echo "\nprojects[springboard][download][branch] = $SCRUTINIZER_SHA1" >> build-tools/springboard-core.make'
+            - 'echo "projects[springboard][download][branch] = $SCRUTINIZER_SHA1" >> build-tools/springboard-core.make'
             - 'cat build-tools/springboard-core.make'
             - 'drush make build-tools/springboard-mtsb.make build'
     tests:
