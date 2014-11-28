@@ -18,8 +18,9 @@ build:
     project_setup:
         before:
             - 'pwd'
+            - 'ls -lah'
             - 'cd ..'
-            - 'mv springboard_modules repo'
+            - 'mv build repo'
             - 'curl -sS https://getcomposer.org/installer | php'
             - 'composer.phar --no-dev install global drush/drush'
             - 'mysql -e "CREATE DATABASE springboard"'
