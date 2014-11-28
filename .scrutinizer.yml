@@ -1,3 +1,45 @@
+# .scrutinizer.yml
+build:
+    environment:
+        timezone: 'US/Eastern'
+        php:
+            version: 5.5.12       # Common versions: 5.4.28, 5.5.12, or hhvm
+            ini:
+                'date.timezone': 'America/New_York'
+        hosts:
+            local.dev: '127.0.0.1'
+        apache2:
+            modules: ['rewrite']
+            sites:
+                springboard:
+                    web_root: '.'
+                    host: 'local.dev'
+    dependencies:
+    project_setup:
+        before:
+            - 'pwd'
+            - 'cd ..'
+            - 'mv springboard_modules repo'
+            - 'curl -sS https://getcomposer.org/installer | php'
+            - 'composer.phar --no-dev install global drush/drush'
+            - 'mysql -e "CREATE DATABASE springboard"
+            - 'echo `git rev-parse HEAD` > ../modules-commit'
+            - 'cd ..'
+            - 'git clone --branch 7.x-4.x git@github.com:JacksonRiver/Springboard-Build.git build-tools'
+            - 'echo "\nprojects[springboard][download][branch] = `cat modules-commit`" >> build-tools/springboard-core.make'
+            - 'drush make build-tools/springboard-mtsb.make springboard_modules'
+    tests:
+        before:
+        override:
+
+            - 'cd ../build'
+            - 'chmod -R 777 sites/default'
+            - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --acount-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
+            - 'drush -l http://local.dev cc all'
+            - 'drush -l http://local.dev status'
+            - 'curl --max-time 10 http://local.dev | grep "DONATE"'
+
+
 filter:
     paths:
         - '*.php'
