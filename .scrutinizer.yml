@@ -22,7 +22,7 @@ build:
             - 'cd ..'
             - 'mv build repo'
             - 'curl -sS https://getcomposer.org/installer | php'
-            - 'composer.phar --no-dev install global drush/drush'
+            - 'php composer.phar --no-dev install global drush/drush'
             - 'mysql -e "CREATE DATABASE springboard"'
             - 'echo `git rev-parse HEAD` > ../modules-commit'
             - 'cd ..'
