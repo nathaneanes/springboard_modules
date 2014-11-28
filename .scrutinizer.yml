@@ -17,29 +17,40 @@ build:
     dependencies:
     project_setup:
         before:
+            - echo SCRUTINIZER_BRANCH
+            - echo SCRUTINIZER_SHA1
+            - echo SCRUTINIZER_INSPECTION_UUID
+            - echo SCRUTINIZER_PROJECT
+            - echo SCRUTINIZER
+            - echo CI
+            - echo GIT_ASKPASS
+            - echo SSH_ASKPASS
+            - echo GITHUB_USERNAME
+            - echo GITHUB_ACCESS_TOKEN
+            - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'pwd'
+            - 'echo `git rev-parse HEAD` > ../modules-commit'
             - 'ls -lah'
             - 'cd ..'
+            - 'ls -lah'
             - 'mv build repo'
+            - 'ls -lah'
             - 'curl -sS https://getcomposer.org/installer | php'
-            - 'php composer.phar --no-dev install global drush/drush'
-            - 'mysql -e "CREATE DATABASE springboard"'
-            - 'echo `git rev-parse HEAD` > ../modules-commit'
-            - 'cd ..'
+            - 'ls -lah'
+            - 'php composer.phar global require drush/drush:6.5.0 --no-dev'
+            - 'ls -lah'
             - 'git clone --branch 7.x-4.x git@github.com:JacksonRiver/Springboard-Build.git build-tools'
             - 'echo "\nprojects[springboard][download][branch] = `cat modules-commit`" >> build-tools/springboard-core.make'
-            - 'drush make build-tools/springboard-mtsb.make springboard_modules'
+            - 'drush make build-tools/springboard-mtsb.make build'
     tests:
         before:
         override:
-
-            - 'cd ../build'
+            - 'cd build'
             - 'chmod -R 777 sites/default'
             - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --acount-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
             - 'drush -l http://local.dev cc all'
             - 'drush -l http://local.dev status'
             - 'curl --max-time 10 http://local.dev | grep "DONATE"'
-
 
 filter:
     paths:
