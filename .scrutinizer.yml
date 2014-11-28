@@ -36,7 +36,7 @@ build:
             - 'drush -l http://local.dev status'
             - 'curl --max-time 10 http://local.dev | grep "DONATE"'
             - 'drush -l http://local.dev en springboard_tests -y'
-            - 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts
+            - 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts'
 
 filter:
     paths:
