@@ -3,7 +3,7 @@ build:
     environment:
         timezone: 'US/Eastern'
         php:
-            version: 5.4.35
+            version: 5.4.30
             ini:
                 'date.timezone': 'America/New_York'
         hosts:
