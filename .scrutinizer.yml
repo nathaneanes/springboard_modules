@@ -48,8 +48,9 @@ build:
                     host: 'local.dev'
     dependencies:
         before:
+            - 'cd'
             - 'wget http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar'
-            - "xvfb-run -a -s '-screen 0 1024x768x16' java -Xmx256m -jar selenium-server-standalone-2.44.0.jar >> artifacts/selenium.log 2>&1 &"
+            - "xvfb-run -a -s '-screen 0 1024x768x16' java -Xmx256m -jar selenium-server-standalone-2.44.0.jar"
             - 'ps aux | grep xvfb'
             - 'curl -L http://127.0.0.1:4444'
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
