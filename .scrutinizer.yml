@@ -48,7 +48,8 @@ build:
                     host: 'local.dev'
     dependencies:
         before:
-            - sudo apt-get install ack-grep
+            - sudo apt-get install ack-grep -y
+            - composer self-update
     project_setup:
         before:
             - 'find . -name "*.php" -print0 | xargs -0 -n1 -P8 php -l'
