@@ -148,7 +148,7 @@ tools:
             - inc
             - profile
             - test
-    php_sim: true
+    php_sim: false
     php_changetracking: true
     php_analyzer:
         enabled: true
