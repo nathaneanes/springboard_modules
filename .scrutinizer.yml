@@ -48,7 +48,7 @@ build:
                     host: 'local.dev'
     dependencies:
         before:
-            - apt-get install ack-grep
+            - sudo apt-get install ack-grep
     project_setup:
         before:
             - 'find . -name "*.php" -print0 | xargs -0 -n1 -P8 php -l'
@@ -202,7 +202,7 @@ tools:
     php_sim: false
     php_changetracking: true
     php_analyzer:
-        enabled: true
+        enabled: false
         config:
             metrics_coupling:
                 enabled: false
