@@ -49,10 +49,16 @@ build:
     dependencies:
     project_setup:
         before:
+            - 'find . -name "*.php" -print0 | xargs -0 -n1 -P8 php -l'
+            - 'find . -name "*.module" -print0 | xargs -0 -n1 -P8 php -l'
+            - 'find . -name "*.install" -print0 | xargs -0 -n1 -P8 php -l'
+            - 'find . -name "*.inc" -print0 | xargs -0 -n1 -P8 php -l'
+            - 'find . -name "*.profile" -print0 | xargs -0 -n1 -P8 php -l'
+            - 'find . -name "*.test" -print0 | xargs -0 -n1 -P8 php -l'
+            - 'find . -name "*.theme" -print0 | xargs -0 -n1 -P8 php -l'
             # Negate the return value of ack, because not finding these
             # strings should be a pass.
             - '! ack -i "<<<<<<<|^=======$|>>>>>>>|dpm\(|dsm\(|var_dump\(| var_export\(|debug\(|" --ignore-file=ext:txt,test,html'
-            - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
             - 'composer global require drush/drush:6.5.0'
             - 'cd ..'
@@ -63,6 +69,7 @@ build:
             - 'cat build-tools/springboard-core.make'
             - 'drush make build-tools/springboard-mtsb.make build'
             - 'cd build'
+            - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'chmod -R 777 sites/default'
             - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --account-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
     tests:
@@ -82,6 +89,7 @@ filter:
         - '*.inc'
         - '*.profile'
         - '*.test'
+        - '*.theme'
     excluded_paths:
         - 'vendor/*'
         - 'app/*'
@@ -100,6 +108,7 @@ tools:
             - inc
             - profile
             - test
+            - theme
         filter:
             excluded_paths: ['vendor/*', 'app/*', 'web/*']
         config:
@@ -151,6 +160,7 @@ tools:
             - inc
             - profile
             - test
+            - theme
         filter:
             excluded_paths: ['vendor/*', 'app/*', 'web/*']
         config:
@@ -165,6 +175,7 @@ tools:
             - '*.inc'
             - '*.profile'
             - '*.test'
+            - '*.theme'
         filter:
             excluded_paths: ['vendor/*', 'app/*', 'web/*']
 
@@ -176,6 +187,7 @@ tools:
             - '*.inc'
             - '*.profile'
             - '*.test'
+            - '*.theme'
     php_pdepend:
         suffixes:
             - php
@@ -184,6 +196,7 @@ tools:
             - inc
             - profile
             - test
+            - theme
     php_sim: false
     php_changetracking: true
     php_analyzer:
@@ -204,6 +217,7 @@ tools:
             - inc
             - profile
             - test
+            - theme
 
     sensiolabs_security_checker: false
 
@@ -216,6 +230,7 @@ tools:
             - inc
             - profile
             - test
+            - theme
         filter:
             excluded_paths: ['vendor/*', 'app/*', 'web/*']
         config:
