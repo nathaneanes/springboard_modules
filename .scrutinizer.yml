@@ -50,7 +50,7 @@ build:
         before:
             - 'cd'
             - 'wget http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar'
-            - "xvfb-run -a -s '-screen 0 1024x768x16' java -Xmx256m -jar selenium-server-standalone-2.44.0.jar"
+            - "xvfb-run -a -s '-screen 0 1024x768x16' java -Xmx256m -jar selenium-server-standalone-2.44.0.jar >> artifacts/selenium.log 2>&1 &"
             - 'ps aux | grep xvfb'
             - 'curl -L http://127.0.0.1:4444'
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
@@ -102,7 +102,8 @@ build:
             # Not working.
             # -bash: [: -neq: binary operator expected
             # - 'if [ `cat ../artifacts/*.xml | grep -c "failure message"` -neq 0 ]; then exit 1; fi'
-            # - 'cd ~/acceptance-tests && codecept run --html --xml'
+            - 'cd ~/acceptance-tests && codecept run --html --xml'
+            - 'cat artifacts/selenium.log'
 
 filter:
     paths:
