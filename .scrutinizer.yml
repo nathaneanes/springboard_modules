@@ -49,7 +49,10 @@ build:
     dependencies:
         before:
             - sudo apt-get install ack-grep -y
+            - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
             - sudo composer self-update
+            - 'composer global require drush/drush:6.5.0'
+            - 'composer global require codeception:codeception:2.0.8'
     project_setup:
         before:
             - 'find . -name "*.php" -print0 | xargs -0 -n1 -P8 php -l'
@@ -61,12 +64,9 @@ build:
             - 'find . -name "*.theme" -print0 | xargs -0 -n1 -P8 php -l'
             # Negate the return value of ack, because not finding these
             # strings should be a pass.
-            - '! ack -i "<<<<<<<|^=======$|>>>>>>>|dpm\(|dsm\(|var_dump\(| var_export\(|debug\(|" --ignore-file=ext:txt,test,html'
-            - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
-            - 'composer global require drush/drush:6.5.0'
+            - '! ack-grep -i "<<<<<<<|^=======$|>>>>>>>|dpm\(|dsm\(|var_dump\(| var_export\(|debug\(|" --ignore-file=ext:txt,test,html'
             - 'cd ..'
             - 'mv build repo'
-            - 'ls -lah'
             - 'git clone --branch 7.x-4.x https://github.com/JacksonRiver/Springboard-Build.git build-tools'
             - 'echo "projects[springboard][download][branch] = $SCRUTINIZER_SHA1" >> build-tools/springboard-core.make'
             - 'cat build-tools/springboard-core.make'
@@ -75,14 +75,28 @@ build:
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'chmod -R 777 sites/default'
             - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --account-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
+            - 'drush -l http://local.dev sql-dump --result-file=../dump.sql'
+            - 'cd ..'
+            - 'git clone https://github.com/JacksonRiver/acceptance-tests.git acceptance-tests'
+            - 'cd acceptance-tests'
+            - 'cp codeception.yml.ci codeception.yml'
+            - 'cp tests/acceptance.suite.yml.ci tests/acceptance.suite.yml'
+            - 'echo $DISPLAY'
+            - 'cd ..'
+            - 'ls -lah'
+
     tests:
         before:
         override:
+            - 'pwd'
             - 'drush -l http://local.dev cc all'
             - 'drush -l http://local.dev status'
             - 'curl --max-time 10 http://local.dev | grep "DONATE"'
             - 'drush -l http://local.dev en springboard_tests -y'
             - 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts'
+            # Should fail the build if any failures are found, I hope.
+            - 'if [ `cat ../artifacts/*.xml | grep -c "failure message"` -neq 0 ]; then exit 1; fi'
+            - 'cd ../acceptance-tests && codecept run --html --xml'
 
 filter:
     paths:
