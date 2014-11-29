@@ -96,11 +96,10 @@ build:
             - 'drush -l http://local.dev en springboard_tests -y'
             - 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts'
             # Should fail the build if any failures are found, I hope.
-            # Not working.
+            # Not working. Might not be needed.
             # -bash: [: -neq: binary operator expected
             # - 'if [ `cat ../artifacts/*.xml | grep -c "failure message"` -neq 0 ]; then exit 1; fi'
             - 'cd ~/acceptance-tests && codecept run --html --xml'
-            - 'cat artifacts/selenium.log'
 
 filter:
     paths:
