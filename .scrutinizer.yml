@@ -49,6 +49,9 @@ build:
     dependencies:
     project_setup:
         before:
+            # Negate the return value of ack, because not finding these
+            # strings should be a pass.
+            - '! ack -i "<<<<<<<|^=======$|>>>>>>>|dpm\(|dsm\(|var_dump\(| var_export\(|debug\(|" --ignore-file=ext:txt,test,html'
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
             - 'composer global require drush/drush:6.5.0'
