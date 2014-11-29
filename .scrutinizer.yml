@@ -47,6 +47,8 @@ build:
                     web_root: '.'
                     host: 'local.dev'
     dependencies:
+        before:
+            - apt-get install ack-grep
     project_setup:
         before:
             - 'find . -name "*.php" -print0 | xargs -0 -n1 -P8 php -l'
