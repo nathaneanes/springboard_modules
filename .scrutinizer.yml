@@ -51,8 +51,6 @@ build:
             - 'cd'
             - 'wget http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar'
             - "xvfb-run -a -s '-screen 0 1024x768x16' java -Xmx256m -jar selenium-server-standalone-2.44.0.jar >> artifacts/selenium.log 2>&1 &"
-            - 'ps aux | grep xvfb'
-            - 'curl -L http://127.0.0.1:4444'
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'sudo apt-get install ack-grep -y'
             - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
@@ -77,7 +75,6 @@ build:
             - 'mv build repo'
             - 'git clone --branch 7.x-4.x https://github.com/JacksonRiver/Springboard-Build.git build-tools'
             - 'echo "projects[springboard][download][branch] = $SCRUTINIZER_SHA1" >> build-tools/springboard-core.make'
-            - 'cat build-tools/springboard-core.make'
             - 'drush make build-tools/springboard-mtsb.make build'
             - 'cd ~/build'
             - 'chmod -R 777 sites/default'
@@ -96,8 +93,8 @@ build:
             - 'drush -l http://local.dev cc all'
             - 'drush -l http://local.dev status'
             - 'curl --max-time 10 http://local.dev | grep "DONATE"'
-            #- 'drush -l http://local.dev en springboard_tests -y'
-            #- 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts'
+            - 'drush -l http://local.dev en springboard_tests -y'
+            - 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts'
             # Should fail the build if any failures are found, I hope.
             # Not working.
             # -bash: [: -neq: binary operator expected
