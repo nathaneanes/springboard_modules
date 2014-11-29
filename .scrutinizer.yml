@@ -52,7 +52,7 @@ build:
             - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
             - sudo composer self-update
             - 'composer global require drush/drush:6.5.0'
-            - 'composer global require codeception:codeception:2.0.8'
+            - 'composer global require codeception/codeception:2.0.8'
     project_setup:
         before:
             - 'find . -name "*.php" -print0 | xargs -0 -n1 -P8 php -l'
