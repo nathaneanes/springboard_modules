@@ -1,4 +1,36 @@
 # .scrutinizer.yml
+application:
+    dependencies:
+    environment:
+        timezone: 'US/Eastern'
+        php:
+            version: 5.4.30
+            ini:
+                'date.timezone': 'America/New_York'
+        hosts:
+            local.dev: '127.0.0.1'
+        apache2:
+            modules: ['rewrite']
+            sites:
+                springboard:
+                    web_root: '.'
+                    host: 'local.dev'
+    project_setup:
+        before:
+            - 'mysql -uroot -e "CREATE DATABASE springboard"'
+            - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
+            - 'composer global require drush/drush:6.5.0'
+            - 'cd ..'
+            - 'mv build repo'
+            - 'ls -lah'
+            - 'git clone --branch 7.x-4.x https://github.com/JacksonRiver/Springboard-Build.git build-tools'
+            - 'echo "projects[springboard][download][branch] = $SCRUTINIZER_SHA1" >> build-tools/springboard-core.make'
+            - 'cat build-tools/springboard-core.make'
+            - 'drush make build-tools/springboard-mtsb.make build'
+            - 'cd build'
+            - 'chmod -R 777 sites/default'
+            - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --account-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
+
 build:
     environment:
         timezone: 'US/Eastern'
@@ -27,12 +59,12 @@ build:
             - 'echo "projects[springboard][download][branch] = $SCRUTINIZER_SHA1" >> build-tools/springboard-core.make'
             - 'cat build-tools/springboard-core.make'
             - 'drush make build-tools/springboard-mtsb.make build'
-    tests:
-        before:
-        override:
             - 'cd build'
             - 'chmod -R 777 sites/default'
             - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --account-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
+    tests:
+        before:
+        override:
             - 'drush -l http://local.dev cc all'
             - 'drush -l http://local.dev status'
             - 'curl --max-time 10 http://local.dev | grep "DONATE"'
