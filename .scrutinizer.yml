@@ -50,8 +50,6 @@ build:
         before:
             - 'wget http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar'
             - 'java -jar selenium-server-standalone-2.44.0.jar -port 4444 > artifacts/selenium-out.log 2> artifacts/selenium-error.log &'
-            - 'cat artifacts/selenium-out.log'
-            - 'cat artifacts/selenium-error.log'
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'sudo apt-get install ack-grep -y'
             - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
