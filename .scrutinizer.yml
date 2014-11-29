@@ -49,14 +49,13 @@ build:
     dependencies:
         before:
             - 'wget http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar'
-            - 'java -jar selenium-server-standalone-2.44.0.jar -port 4444 > artifacts/selenium-out.log 2> artifacts/selenium-error.log &'
+            - "xvfb-run -a -s '-screen 0 1024x768x16' java -Xmx256m -jar selenium-server-standalone-2.44.0.jar >> artifacts/selenium.log 2>&1 &"
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'sudo apt-get install ack-grep -y'
             - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
             - 'sudo composer self-update'
             - 'composer global require drush/drush:6.5.0'
             - 'composer global require codeception/codeception:2.0.8'
-            - 'php -v'
     project_setup:
         before:
             - 'cd ~/build'
@@ -95,12 +94,13 @@ build:
             - 'drush -l http://local.dev status'
             - 'curl --max-time 10 http://local.dev | grep "DONATE"'
             - 'drush -l http://local.dev en springboard_tests -y'
-            - 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts'
+            #- 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts'
             # Should fail the build if any failures are found, I hope.
             # Not working.
             # -bash: [: -neq: binary operator expected
             # - 'if [ `cat ../artifacts/*.xml | grep -c "failure message"` -neq 0 ]; then exit 1; fi'
             - 'cd ~/acceptance-tests && codecept run --html --xml'
+            - 'cat artifacts/selenium.log'
 
 filter:
     paths:
