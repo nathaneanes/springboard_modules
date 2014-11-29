@@ -64,7 +64,8 @@ build:
             - 'find . -name "*.theme" -print0 | xargs -0 -n1 -P8 php -l'
             # Negate the return value of ack, because not finding these
             # strings should be a pass.
-            - '! ack-grep -i "<<<<<<<|^=======$|>>>>>>>|dpm\(|dsm\(|var_dump\(| var_export\(|debug\(|" --ignore-file=ext:txt,test,html'
+            # Not working. Triggers an idle timeout.
+            #- '! ack-grep -i "<<<<<<<|^=======$|>>>>>>>|dpm\(|dsm\(|var_dump\(| var_export\(|debug\(|" --ignore-file=ext:txt,test,html'
             - 'cd ..'
             - 'mv build repo'
             - 'git clone --branch 7.x-4.x https://github.com/JacksonRiver/Springboard-Build.git build-tools'
