@@ -46,4 +46,5 @@ SpringboardSocialFunctionalTest
 SpringboardVersionTestCase
 SpringboardViewsTestCase
 ValidationLogTestCase
+WebformUserConfirmationTestCase
 WebformTokenSelectorTestCase
