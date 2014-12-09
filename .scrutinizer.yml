@@ -1,36 +1,3 @@
-# .scrutinizer.yml
-application:
-    dependencies:
-    environment:
-        timezone: 'US/Eastern'
-        php:
-            version: 5.4.30
-            ini:
-                'date.timezone': 'America/New_York'
-        hosts:
-            local.dev: '127.0.0.1'
-        apache2:
-            modules: ['rewrite']
-            sites:
-                springboard:
-                    web_root: '.'
-                    host: 'local.dev'
-    project_setup:
-        before:
-            - 'mysql -uroot -e "CREATE DATABASE springboard"'
-            - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
-            - 'composer global require drush/drush:6.5.0'
-            - 'cd ..'
-            - 'mv build repo'
-            - 'ls -lah'
-            - 'git clone --branch 7.x-4.x https://github.com/JacksonRiver/Springboard-Build.git build-tools'
-            - 'echo "projects[springboard][download][branch] = $SCRUTINIZER_SHA1" >> build-tools/springboard-core.make'
-            - 'cat build-tools/springboard-core.make'
-            - 'drush make build-tools/springboard-mtsb.make build'
-            - 'cd build'
-            - 'chmod -R 777 sites/default'
-            - "drush si sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --account-name=admin --account-pass=admin --account-mail=david.barbarisi@jacksonriver.com --clean-url=1 --site-mail=david.barbarisi@jacksonriver.com --site-name=4x --db-url=mysql://root:@127.0.0.1/springboard --yes"
-
 build:
     environment:
         timezone: 'US/Eastern'
@@ -48,6 +15,8 @@ build:
                     host: 'local.dev'
     dependencies:
         before:
+            - 'php -m'
+            - 'dpkg --get-selections | grep -v deinstall'
             - 'cd'
             - 'wget http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar'
             - "xvfb-run -a -s '-screen 0 1024x768x16' java -Xmx256m -jar selenium-server-standalone-2.44.0.jar >> artifacts/selenium.log 2>&1 &"
