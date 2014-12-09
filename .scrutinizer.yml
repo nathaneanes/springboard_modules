@@ -91,7 +91,7 @@ build:
             - 'cd ~/build'
             - 'drush -l http://local.dev cc all'
             - 'drush -l http://local.dev status'
-            - 'curl --max-time 10 http://local.dev | grep "DONATE"'
+            - 'curl --max-time 20 http://local.dev | grep "DONATE"'
             - 'drush -l http://local.dev en springboard_tests -y'
             - 'drush -l http://local.dev sb-test-run springboard --xml=../artifacts'
             # Should fail the build if any failures are found, I hope.
