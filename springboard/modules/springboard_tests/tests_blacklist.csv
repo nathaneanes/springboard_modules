@@ -13,6 +13,7 @@ FundraiserCommerceUnitTestCase
 FundraiserDateModeTest
 FundraiserSustainerTest
 MarketSourceTestCase
+PageWrappersRulesetTestCase
 SalesforceDonationTestCase
 SalesforceGenmapEntitiesTestCase
 SalesforceGenmapTestCase
