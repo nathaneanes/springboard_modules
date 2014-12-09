@@ -48,4 +48,5 @@ SpringboardVersionTestCase
 SpringboardViewsTestCase
 ValidationLogTestCase
 WebformUserConfirmationTestCase
+WebformUserFieldTruncateTestCase
 WebformTokenSelectorTestCase
