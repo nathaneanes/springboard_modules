@@ -1,0 +1,72 @@
+<?php
+
+class FundraiserSustainersInsightsTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Fundraiser Sustainers Insights',
+      'description' => 'Test the Fundraiser Sustainers Insights data.',
+      'group' => 'Fundraiser Sustainers',
+    );
+  }
+
+  function setUp() {
+    $modules = array(
+      'fundraiser_sustainers',
+      'fundraiser_commerce',
+      'encrypt',
+    );
+    parent::setUp($modules);
+  }
+
+  function testSomething() {
+    $today = new DateTime();
+    $insights = new FundraiserSustainersInsights();
+    $today_snapshot = $insights->getTodaysSnapshot();
+
+    $this->assertEqual($today_snapshot->getDate(), $today, 'Today\'s date and the snapshot date match.');
+
+    $this->assertEqual($today_snapshot->getDate()->format('Y-m-d'), date('Y-m-d'));
+    $this->assertIdentical($today_snapshot->getScheduledCharges(), 0);
+    $this->assertIdentical($today_snapshot->getTotalValue(), 0);
+    $this->assertIdentical($today_snapshot->getSuccesses(), 0);
+    $this->assertIdentical($today_snapshot->getFailures(), 0);
+
+    $snapshot = $insights->getSnapshot(new DateTime('2013-12-01'));
+    $this->assertEqual($snapshot->getDate(), new DateTime('2013-12-01'), 'Date reported by snapshot matches.');
+
+    $report = $insights->getHistoricalReport(new DateTime('2014-11-01'), new DateTime('2014-12-01'));
+    $this->debugReport($report);
+
+    $last_ten_days = $insights->getHistoricalReportPreset('-7 days');
+    $this->debugReport($last_ten_days);
+
+  }
+
+  public function debugReport(FundraiserSustainersHistoricalReport $report) {
+    foreach ($report->getSnapshots() as $key => $snapshot) {
+      $this->assertEqual($key, $snapshot->getDate()->format('Y-m-d'));
+
+      // Past X days.
+      debug($snapshot->getScheduledCharges());
+      debug($snapshot->getScheduledValue());
+
+      debug($snapshot->getRetriedCharges());
+      debug($snapshot->getRetriedValue());
+
+      debug($snapshot->getProcessedCharges());
+      debug($snapshot->getProcessedValue());
+
+      debug($snapshot->getRescheduledCharges());
+      debug($snapshot->getRescheduledValue());
+
+      debug($snapshot->getAbandonedCharges());
+      debug($snapshot->getAbandonedValue());
+
+      // Processing Stats.
+      debug($snapshot->getSuccesses());
+      debug($snapshot->getFailures());
+    }
+  }
+
+}
