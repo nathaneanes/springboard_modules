@@ -1,6 +1,15 @@
 <?php
 
+/**
+ * Class FundraiserSustainersDailySnapshot
+ */
 class FundraiserSustainersDailySnapshot {
+
+  /**
+   * @var DateTime
+   * Today.
+   */
+  protected $today;
 
   /**
    * @var DateTime
@@ -91,25 +100,43 @@ class FundraiserSustainersDailySnapshot {
   protected $failures;
 
 
+  /**
+   * @param DateTime $date
+   */
   public function __construct(DateTime $date) {
     $this->date = $date;
+    $this->today = new DateTime();
 
-    $this->initializeValues();
+    $this->load();
   }
 
+  /**
+   *
+   */
   public function save() {
     $this->lastUpdated = REQUEST_TIME;
 
+    // Save to the database.
+    $this->saveRow();
   }
 
+  /**
+   * @return DateTime
+   */
   public function getDate() {
     return $this->date;
   }
 
+  /**
+   * @return int
+   */
   public function getScheduledCharges() {
     return $this->scheduledFirstTimeCharges + $this->scheduledRetriesCharges;
   }
 
+  /**
+   * @return int
+   */
   public function getScheduledValue() {
     return $this->scheduledFirstTimeValue + $this->scheduledRetiresValue;
   }
@@ -123,10 +150,16 @@ class FundraiserSustainersDailySnapshot {
     return $this->processedValue;
   }
 
+  /**
+   * @return int
+   */
   public function getSuccesses() {
     return $this->successes;
   }
 
+  /**
+   * @return int
+   */
   public function getFailures() {
     return $this->failures;
   }
@@ -215,6 +248,62 @@ class FundraiserSustainersDailySnapshot {
     return $this->scheduledRetriesCharges;
   }
 
+  /**
+   * @return bool
+   */
+  protected function shouldUseLiveData() {
+    return $this->today == $this->date;
+  }
+
+  /**
+   *
+   */
+  protected function load() {
+    $this->initializeValues();
+    if ($this->shouldUseLiveData()) {
+      // Calculate new stuff since it's today.
+      $this->calculateValues();
+    }
+    else {
+      // Look for a record in the DB and load it.
+      // If there's no existing record, calculate new values.
+      $row = $this->findRow();
+      if (empty($row)) {
+        $this->calculateValues();
+      }
+      else {
+        foreach ($row as $key => $value) {
+          $this->$key = $value;
+        }
+      }
+    }
+  }
+
+  /**
+   *
+   */
+  protected function saveRow() {
+    // Set up a record array for drupal_write_record or db_insert.
+  }
+
+  /**
+   * @return array
+   */
+  protected function findRow() {
+    // Query for rows by the Y-m-d date string.
+    return array();
+  }
+
+  /**
+   *
+   */
+  protected function calculateValues() {
+    // Do the DB queries and math stuff here.
+  }
+
+  /**
+   *
+   */
   protected function initializeValues() {
     $this->scheduledFirstTimeCharges = 0;
     $this->scheduledRetriesCharges = 0;
@@ -222,7 +311,6 @@ class FundraiserSustainersDailySnapshot {
     $this->scheduledRetiresValue = 0;
     $this->successes = 0;
     $this->failures = 0;
-    $this->processedValue = 0;
 
     $this->abandonedCharges = 0;
     $this->abandonedValue = 0;

@@ -10,7 +10,7 @@ class FundraiserSustainersInsightsTestCase extends DrupalWebTestCase {
     );
   }
 
-  function setUp() {
+  public function setUp() {
     $modules = array(
       'fundraiser_sustainers',
       'fundraiser_commerce',
@@ -19,54 +19,83 @@ class FundraiserSustainersInsightsTestCase extends DrupalWebTestCase {
     parent::setUp($modules);
   }
 
-  function testSomething() {
+  public function testInsights() {
     $today = new DateTime();
     $insights = new FundraiserSustainersInsights();
     $today_snapshot = $insights->getTodaysSnapshot();
 
     $this->assertEqual($today_snapshot->getDate(), $today, 'Today\'s date and the snapshot date match.');
 
-    $this->assertEqual($today_snapshot->getDate()->format('Y-m-d'), date('Y-m-d'));
-    $this->assertIdentical($today_snapshot->getScheduledCharges(), 0);
-    $this->assertIdentical($today_snapshot->getTotalValue(), 0);
-    $this->assertIdentical($today_snapshot->getSuccesses(), 0);
-    $this->assertIdentical($today_snapshot->getFailures(), 0);
-
     $snapshot = $insights->getSnapshot(new DateTime('2013-12-01'));
     $this->assertEqual($snapshot->getDate(), new DateTime('2013-12-01'), 'Date reported by snapshot matches.');
 
     $report = $insights->getHistoricalReport(new DateTime('2014-11-01'), new DateTime('2014-12-01'));
-    $this->debugReport($report);
+    $this->debugReport($report, 30);
 
-    $last_ten_days = $insights->getHistoricalReportPreset('-7 days');
-    $this->debugReport($last_ten_days);
-
+    $last_ten_days = $insights->getHistoricalReportPreset('-10 days');
+    $this->debugReport($last_ten_days, 10);
   }
 
-  public function debugReport(FundraiserSustainersHistoricalReport $report) {
-    foreach ($report->getSnapshots() as $key => $snapshot) {
-      $this->assertEqual($key, $snapshot->getDate()->format('Y-m-d'));
+  public function testMockSnapshot() {
+    $snapshot = new MockFundraiserSustainersDailySnapshot(new DateTime());
 
-      // Past X days.
-      debug($snapshot->getScheduledCharges());
-      debug($snapshot->getScheduledValue());
+    $this->assertIdentical($snapshot->getScheduledCharges(), 3);
+    $this->assertIdentical($snapshot->getScheduledValue(), 700);
 
-      debug($snapshot->getRetriedCharges());
-      debug($snapshot->getRetriedValue());
+    $this->assertIdentical($snapshot->getRetriedCharges(), 13);
+    $this->assertIdentical($snapshot->getRetriedValue(), 1400);
 
-      debug($snapshot->getProcessedCharges());
-      debug($snapshot->getProcessedValue());
+    $this->assertIdentical($snapshot->getProcessedCharges(), 11);
+    $this->assertIdentical($snapshot->getProcessedValue(), 1200);
 
-      debug($snapshot->getRescheduledCharges());
-      debug($snapshot->getRescheduledValue());
+    $this->assertIdentical($snapshot->getRescheduledCharges(), 9);
+    $this->assertIdentical($snapshot->getRescheduledValue(), 1000);
 
-      debug($snapshot->getAbandonedCharges());
-      debug($snapshot->getAbandonedValue());
+    $this->assertIdentical($snapshot->getAbandonedCharges(), 7);
+    $this->assertIdentical($snapshot->getAbandonedValue(), 800);
 
-      // Processing Stats.
-      debug($snapshot->getSuccesses());
-      debug($snapshot->getFailures());
+    $this->assertIdentical($snapshot->getTotalValue(), 1200);
+    $this->assertIdentical($snapshot->getSuccesses(), 5);
+    $this->assertIdentical($snapshot->getFailures(), 6);
+  }
+
+  public function debugReport(FundraiserSustainersHistoricalReport $report, $count) {
+    $snapshots = $report->getSnapshots();
+    $this->assertEqual(count($snapshots), $count, 'Got the expected number of snapshots.');
+    foreach ($snapshots as $key => $snapshot) {
+      $this->assertEqual($key, $snapshot->getDate()->format('Y-m-d'), 'Array key for snapshot matches snapshot date.');
     }
   }
+}
 
+class MockFundraiserSustainersDailySnapshot extends FundraiserSustainersDailySnapshot {
+
+  public function mockSnapshotDate() {
+    $i = 0;
+    return array(
+      0 => array(
+        'scheduledFirstTimeCharges' => ++$i,
+        'scheduledRetriesCharges' => ++$i,
+        'scheduledFirstTimeValue' => ++$i * 100,
+        'scheduledRetiresValue' => ++$i * 100,
+        'successes' => ++$i,
+        'failures' => ++$i,
+        'abandonedCharges' => ++$i,
+        'abandonedValue' => ++$i * 100,
+        'rescheduledCharges' => ++$i,
+        'rescheduledValue' => ++$i * 100,
+        'processedCharges' => ++$i,
+        'processedValue' => ++$i * 100,
+        'retriedCharges' => ++$i,
+        'retriedValue' => ++$i * 100,
+      ),
+    );
+  }
+
+  protected function load() {
+    $data = $this->mockSnapshotDate()[0];
+    foreach ($data as $key => $value) {
+      $this->$key = $value;
+    }
+  }
 }

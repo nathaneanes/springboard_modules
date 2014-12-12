@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class FundraiserSustainersHistoricalReport
+ */
 class FundraiserSustainersHistoricalReport {
 
   /**
@@ -18,11 +21,6 @@ class FundraiserSustainersHistoricalReport {
   protected $snapshots;
 
   /**
-   * @var DateTime
-   */
-  protected $currentKey;
-
-  /**
    *
    * @param DateTime $begin
    * @param DateTime $end
@@ -34,14 +32,18 @@ class FundraiserSustainersHistoricalReport {
     $this->loadSnapshots();
   }
 
-  public function loadSnapshots() {
-    $interval = DateInterval::createFromDateString('1 day');
-    $period = new DatePeriod($this->begin, $interval, $this->end);
+  /**
+   * @return DateTime
+   */
+  public function getBegin() {
+    return $this->begin;
+  }
 
-    foreach ($period as $date) {
-      $this->snapshots[$date->format("Y-m-d")] = new FundraiserSustainersDailySnapshot($date);
-    }
-
+  /**
+   * @return DateTime
+   */
+  public function getEnd() {
+    return $this->end;
   }
 
   /**
@@ -49,6 +51,18 @@ class FundraiserSustainersHistoricalReport {
    */
   public function getSnapshots() {
     return $this->snapshots;
+  }
+
+  /**
+   *
+   */
+  protected function loadSnapshots() {
+    $interval = DateInterval::createFromDateString('1 day');
+    $period = new DatePeriod($this->begin, $interval, $this->end);
+
+    foreach ($period as $date) {
+      $this->snapshots[$date->format("Y-m-d")] = new FundraiserSustainersDailySnapshot($date);
+    }
   }
 
 }
