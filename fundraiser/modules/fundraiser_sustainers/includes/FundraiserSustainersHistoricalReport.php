@@ -47,7 +47,7 @@ class FundraiserSustainersHistoricalReport {
   }
 
   /**
-   * @return array<FundraiserSustainersDailySnapshot>
+   * @return FundraiserSustainersDailySnapshot[]
    */
   public function getSnapshots() {
     return $this->snapshots;

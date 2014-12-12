@@ -41,7 +41,29 @@ class FundraiserSustainersInsights {
    *
    * @return FundraiserSustainersHistoricalReport
    */
+  public function getForecastPreset($string) {
+    $string = '+' . $string;
+    $begin = new DateTime();
+
+    try {
+      $end = new DateTime($string);
+    }
+    catch (Exception $e) {
+      // Default to past 7 days if we can't figure out what the string is.
+      $end = new DateTime('+7 days');
+    }
+
+    // Now go through the normal validation.
+    return $this->getHistoricalReport($begin, $end);
+  }
+
+  /**
+   * @param $string
+   *
+   * @return FundraiserSustainersHistoricalReport
+   */
   public function getHistoricalReportPreset($string) {
+    $string = '-' . $string;
     $end = new DateTime();
 
     try {
