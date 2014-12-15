@@ -1,68 +1,16 @@
 <?php
-
 /**
- * Class FundraiserSustainersHistoricalReport
+ * @file
+ * A class for Sustainers historical reports. Contains past snapshots.
  */
-class FundraiserSustainersHistoricalReport {
 
-  /**
-   * @var DateTime
-   */
-  protected $begin;
+class FundraiserSustainersHistoricalReport extends FundraiserSustainersSnapshotReport {
 
-  /**
-   * @var DateTime
-   */
-  protected $end;
-
-  /**
-   * @var FundraiserSustainersDailySnapshot[]
-   */
-  protected $snapshots;
-
-  /**
-   *
-   * @param DateTime $begin
-   * @param DateTime $end
-   */
   public function __construct(DateTime $begin, DateTime $end) {
-    $this->begin = $begin;
-    $this->end = $end;
+    // @todo Throw an Exception if either date is in the future.
+    // @todo Throw an Exception if begin is today.
+    // end is allowed to be today.
 
-    $this->loadSnapshots();
+    parent::__construct($begin, $end);
   }
-
-  /**
-   * @return DateTime
-   */
-  public function getBegin() {
-    return $this->begin;
-  }
-
-  /**
-   * @return DateTime
-   */
-  public function getEnd() {
-    return $this->end;
-  }
-
-  /**
-   * @return FundraiserSustainersDailySnapshot[]
-   */
-  public function getSnapshots() {
-    return $this->snapshots;
-  }
-
-  /**
-   *
-   */
-  protected function loadSnapshots() {
-    $interval = DateInterval::createFromDateString('1 day');
-    $period = new DatePeriod($this->begin, $interval, $this->end);
-
-    foreach ($period as $date) {
-      $this->snapshots[$date->format("Y-m-d")] = new FundraiserSustainersDailySnapshot($date);
-    }
-  }
-
 }

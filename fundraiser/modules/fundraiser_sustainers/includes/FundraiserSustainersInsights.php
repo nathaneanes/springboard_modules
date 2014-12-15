@@ -13,6 +13,10 @@ class FundraiserSustainersInsights {
   }
 
   /**
+   * Record data for a snapshot on the given day.
+   *
+   * This might get removed.
+   *
    * @param DateTime $time
    */
   public function takeSnapshot(DateTime $time) {
@@ -39,7 +43,7 @@ class FundraiserSustainersInsights {
   /**
    * @param $string
    *
-   * @return FundraiserSustainersHistoricalReport
+   * @return FundraiserSustainersForecast
    */
   public function getForecastPreset($string) {
     $string = '+' . $string;
@@ -53,14 +57,13 @@ class FundraiserSustainersInsights {
       $end = new DateTime('+7 days');
     }
 
-    // Now go through the normal validation.
-    return $this->getHistoricalReport($begin, $end);
+    return $this->getForecast($begin, $end);
   }
 
   /**
    * @param $string
    *
-   * @return FundraiserSustainersHistoricalReport
+   * @return FundraiserSustainersSnapshotReport
    */
   public function getHistoricalReportPreset($string) {
     $string = '-' . $string;
@@ -74,7 +77,6 @@ class FundraiserSustainersInsights {
       $begin = new DateTime('-7 days');
     }
 
-    // Now go through the normal validation.
     return $this->getHistoricalReport($begin, $end);
   }
 
@@ -85,9 +87,16 @@ class FundraiserSustainersInsights {
    * @return FundraiserSustainersHistoricalReport
    */
   public function getHistoricalReport(DateTime $begin, DateTime $end) {
-    // @todo Complain if end date is today or start is after end or range is
-    // too big.
-
     return new FundraiserSustainersHistoricalReport($begin, $end);
+  }
+
+  /**
+   * @param DateTime $begin
+   * @param DateTime $end
+   *
+   * @return FundraiserSustainersForecast
+   */
+  public function getForecast(DateTime $begin, DateTime $end) {
+    return new FundraiserSustainersForecast($begin, $end);
   }
 }

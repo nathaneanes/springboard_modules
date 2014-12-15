@@ -11,6 +11,8 @@ files[] = includes/FundraiserSustainersHealthChecks.php
 files[] = includes/FundraiserSustainerRecordViewsController.php
 
 files[] = includes/FundraiserSustainersDailySnapshot.php
+files[] = includes/FundraiserSustainersSnapshotReport.php
+files[] = includes/FundraiserSustainersForecast.php
 files[] = includes/FundraiserSustainersHistoricalReport.php
 files[] = includes/FundraiserSustainersInsights.php
 
