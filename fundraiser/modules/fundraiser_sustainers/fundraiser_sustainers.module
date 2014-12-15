@@ -356,6 +356,7 @@ function fundraiser_sustainers_skip_submit($form, &$form_state) {
   $donation->status_charged = _fundraiser_commerce_get_charged_by_status('skipped');
   fundraiser_donation_update($donation);
 
+  // @todo Update sustainers query.
   db_query('UPDATE {fundraiser_sustainers} SET ' .
     'gateway_resp = \'skipped\',' .
     'lock_id = 0, ' .
@@ -748,6 +749,7 @@ function fundraiser_sustainers_process_single_recurring_donation(&$log, $recurri
 
     // Make sure this charge wasn't partially processed already (e.g., cron
     // crashed awaiting response from the gateway).
+    // @todo Update sustainers query.
     if ('processing' == db_query("SELECT gateway_resp FROM {fundraiser_sustainers} WHERE did=:did;", array(':did' => $recurring->did))->fetchField()) {
       watchdog('fundraiser_sustainers', 'Sustainer order id !did tried to process for a second time! Skipped.',
         array('!did' => $recurring->did),
@@ -763,6 +765,7 @@ function fundraiser_sustainers_process_single_recurring_donation(&$log, $recurri
     }
 
     // Update the sustainer record to "processing"
+    // @todo Update sustainers query.
     db_query("UPDATE {fundraiser_sustainers} SET gateway_resp='processing' WHERE did=:did;", array(':did' => $recurring->did));
 
     // Then go through each one of these to charge.
@@ -1574,6 +1577,7 @@ function fundraiser_sustainers_change_charge_date($master_did, $new_day) {
         $operator = '+';
       }
 
+      // @todo Update sustainers query.
       $query = db_update('fundraiser_sustainers')
         ->expression('next_charge', '( next_charge ' . $operator . ' :delta )', array(':delta' => $time_delta))
         ->condition('master_did', $master_did, '=')
@@ -2226,6 +2230,7 @@ function fundraiser_sustainers_fundraiser_donation_success($donation) {
   }
   else {
     // And update the sustainer table.
+    // @todo Update sustainer query.
     db_query('UPDATE {fundraiser_sustainers} SET ' .
       'gateway_resp = \'success\', attempts = attempts + 1 ' .
       'WHERE did = :did', array(':did' => $donation->did)
@@ -2243,6 +2248,7 @@ function fundraiser_sustainers_fundraiser_donation_success($donation) {
 function fundraiser_sustainers_fundraiser_donation_decline($donation) {
   if ($donation->donation['recurs_monthly'] == TRUE) {
     // Update data internal to fundraiser. TODO move this db stuff.
+    // @todo Update sustainer query.
     db_query('UPDATE {fundraiser_sustainers} SET ' .
       'gateway_resp = \'failed\', attempts = attempts + 1, ' .
       'lock_id = 0, ' .
@@ -2250,6 +2256,7 @@ function fundraiser_sustainers_fundraiser_donation_decline($donation) {
       'WHERE did = :did', array(':did' => $donation->did)
     );
     // Get the number of times this order has been attempted
+    // @todo Update sustainer query.
     $attempt_count = db_query('SELECT attempts FROM {fundraiser_sustainers} WHERE did = :did',
       array(':did' => $donation->did))->fetchColumn();
 
@@ -2299,6 +2306,7 @@ function fundraiser_sustainers_fundraiser_donation_cancel($donation) {
   }
 
   // Set the gateway resp field to canceled.
+  // @todo Update sustainer query.
   db_update('fundraiser_sustainers')
     ->fields(array('gateway_resp' => 'canceled', 'cancellation_reason' => $reason))
     ->condition('did', $donation->did)
@@ -2391,6 +2399,7 @@ function _fundraiser_sustainers_send_cc_notification($master_did, $uid) {
   // Otherwise, send it.
   $user = user_load($uid);
   // Load the last remaining order so we can get some info for the email.
+  // @todo Update sustainer query.
   $did = db_query('SELECT did FROM {fundraiser_sustainers} WHERE master_did = :master_did AND gateway_resp IS NULL LIMIT 0,1', // Coder: this is ok.
     array(':master_did' => $master_did))->fetchColumn();
   $donation = fundraiser_donation_get_donation($did);
@@ -2447,6 +2456,7 @@ function _fundraiser_sustainers_create_recurring($donation) {
   }
   if (!$donation_data) {
     $record = $donation;
+    // @todo Update sustainer query.
     drupal_write_record('fundraiser_sustainers', $record);
   }
   else {
@@ -2458,6 +2468,7 @@ function _fundraiser_sustainers_create_recurring($donation) {
  * CRUD style DB function for fundraiser_sustainers.
  */
 function _fundraiser_sustainers_get_recurring_by_did($did) {
+  // @todo Update sustainer query.
   return db_query('SELECT * FROM {fundraiser_sustainers} ' .
     'WHERE did = :did',
     array(':did' => $did))->fetchObject();
@@ -2479,6 +2490,7 @@ function _fundraiser_sustainers_update_recurring($donation) {
   }
   else {
     $record = array_merge((array) $donation_data, $donation); // Merge data together so we get everything in the record.
+    // @todo Update sustainer query.
     drupal_write_record('fundraiser_sustainers', $record, 'did');
   }
 }
@@ -2487,6 +2499,7 @@ function _fundraiser_sustainers_update_recurring($donation) {
  * CRUD style DB function for fundraiser_sustainers.
  */
 function _fundraiser_sustainers_delete_recurring($did) {
+  // @todo Update sustainer query.
   db_delete('fundraiser_sustainers')->condition('did', $did)->execute();
 }
 
@@ -2494,6 +2507,7 @@ function _fundraiser_sustainers_delete_recurring($did) {
  * DB funct, get user donation set information that are recurring.
  */
 function _fundraiser_sustainers_get_donation_sets_recurr_by_uid($uid) {
+  // @todo Update sustainer query.
   $donation_sets = db_query('SELECT r.master_did, MIN(r.next_charge) AS start_date, ' .
     'MAX(r.next_charge) AS expire_date FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
@@ -2519,6 +2533,7 @@ function _fundraiser_sustainers_get_donation_sets_recurr_by_uid($uid) {
  * Called in admin pages.
  */
 function _fundraiser_sustainers_get_donation_sets() {
+  // @todo Update sustainer query.
   $donation_sets = db_query('SELECT r.master_did, MIN(r.next_charge) AS start_date, ' .
     'MAX(r.next_charge) AS expire_date FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
@@ -2541,6 +2556,7 @@ function _fundraiser_sustainers_get_donation_sets() {
  * Called in admin pages.
  */
 function _fundraiser_sustainers_get_donations_recurr_by_member($did) {
+  // @todo Update sustainer query.
   $donations = db_query('SELECT * FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
     'WHERE d.did = :did OR r.master_did = :master_did ' .
@@ -2553,6 +2569,7 @@ function _fundraiser_sustainers_get_donations_recurr_by_member($did) {
  */
 function _fundraiser_sustainers_get_donations_next_charge($master_did) {
   $now = strtotime('now');
+  // @todo Update sustainer query.
   return db_query('SELECT * FROM {fundraiser_sustainers} ' .
     'WHERE master_did = :master_did ' .
     'AND next_charge > :now ' .
@@ -2566,6 +2583,7 @@ function _fundraiser_sustainers_get_donations_next_charge($master_did) {
  */
 function _fundraiser_sustainers_get_donations_last_charge($master_did) {
   $now = strtotime('now');
+  // @todo Update sustainer query.
   return db_query('SELECT * FROM {fundraiser_sustainers} ' .
     'WHERE master_did = :master_did ' .
     'AND next_charge > :now ' .
@@ -2579,6 +2597,7 @@ function _fundraiser_sustainers_get_donations_last_charge($master_did) {
  * Called in admin pages.
  */
 function _fundraiser_sustainers_get_donations_recurr_by_masterdid($master_did) {
+  // @todo Update sustainer query.
   $donations = db_query('SELECT * FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
     'WHERE r.master_did = :master_did ' .
@@ -2602,6 +2621,7 @@ function _fundraiser_sustainers_count_donations_recurr_remaining($master_did) {
  * DB funct, get order donation sets that are remaining.
  */
 function _fundraiser_sustainers_get_donations_recurr_remaining($master_did) {
+  // @todo Update sustainer query.
   $donations = db_query('SELECT * FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
     'WHERE r.master_did = :master_did ' .
@@ -2625,6 +2645,7 @@ function _fundraiser_sustainers_count_donations_recurr_processed($master_did) {
  * DB funct, get order donation sets that are processed.
  */
 function _fundraiser_sustainers_get_donations_recurr_processed($master_did) {
+  // @todo Update sustainer query.
   $donations = db_query('SELECT * FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
     'WHERE r.master_did = :master_did ' .
@@ -2643,6 +2664,7 @@ function _fundraiser_sustainers_get_donations_recurr_processed($master_did) {
  *   Number of sustainer rows with the given master donation ID.
  */
 function fundraiser_sustainers_count_donations_in_series($master_did) {
+  // @todo Update sustainer query.
   return db_query('SELECT COUNT(*) FROM {fundraiser_sustainers}
     WHERE master_did = :did', array(':did' => $master_did))->fetchField();
 }
@@ -2652,10 +2674,24 @@ function fundraiser_sustainers_count_donations_in_series($master_did) {
  * Lock them.
  */
 function _fundraiser_sustainers_cron_get_recurring($limit = 1000) {
+  $lock_id = uniqid();
+
+  // Retrieve donation IDs of sustainers that need to be processed,
+  // up to $limit.
+  $dids = fundraiser_sustainers_get_dids_to_lock($limit);
+
+  // If we found any, lock them with our lock id..
+  if (!empty($dids)) {
+    fundraiser_sustainers_lock_dids($dids, $lock_id);
+  }
+
+  // Send back the locked sustainer records.
+  return fundraiser_sustainers_load_by_lock_id($lock_id);
+}
+
+function fundraiser_sustainers_get_dids_to_lock($limit) {
   $now = strtotime('now');
-  $uni_batch_id = uniqid();
-  // Lock them (faster to lock, then query, than the other way around).
-  // Since large data set returns => delay.
+  // @todo Update sustainer query.
   $donations = db_query('SELECT r.did FROM {fundraiser_sustainers} r ' .
     'WHERE (r.gateway_resp IS NULL OR r.gateway_resp = \'failed\') ' .
     'AND r.next_charge < :now ' .
@@ -2664,29 +2700,37 @@ function _fundraiser_sustainers_cron_get_recurring($limit = 1000) {
     'LIMIT 0, ' . $limit,
     array(':now' => $now)
   )->fetchAllKeyed(0, 0);
-  if (!empty($donations)) {
-    db_query('UPDATE {fundraiser_sustainers} r1 ' .
-      'SET r1.lock_id = :uni_batch_id ' .
-      'WHERE r1.did IN (:donations)',
-      array(':uni_batch_id' => $uni_batch_id, ':donations' => $donations)
-    );
-  }
-  // Grab the locked donations for this batch.
-  $donations = db_query('SELECT * FROM {fundraiser_sustainers} r ' .
-    'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
-    'WHERE r.lock_id = :uni_batch_id ' . // Locked to this unique ID.
-    'ORDER BY r.next_charge ASC',
-    array(':uni_batch_id' => $uni_batch_id))->fetchAll();
-  // Return them.
+
   return $donations;
 }
 
+function fundraiser_sustainers_lock_dids($dids, $batch_id) {
+  // @todo Update sustainer query.
+  db_query('UPDATE {fundraiser_sustainers} r1 ' .
+    'SET r1.lock_id = :uni_batch_id ' .
+    'WHERE r1.did IN (:donations)',
+    array(':uni_batch_id' => $batch_id, ':donations' => $dids)
+  );
+}
+
+function fundraiser_sustainers_load_by_lock_id($lock_id) {
+  // Locked to this unique ID.
+  // @todo Update sustainer query.
+  return db_query('SELECT * FROM {fundraiser_sustainers} r ' .
+    'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
+    'WHERE r.lock_id = :uni_batch_id ' .
+    'ORDER BY r.next_charge ASC',
+    array(':uni_batch_id' => $lock_id))->fetchAll();
+}
+
 /**
- * Get total sustainer count by wdonation form node id.
- * @param int $nid
+ * Get total sustainer count by donation form node id.
  *
- * @return
- * Count of distinct sustainer series for this donation form
+ * @param int $nid
+ *   Donation form node ID.
+ *
+ * @return int
+ *   Count of distinct sustainer series for this donation form
  */
 function _fundraiser_sustainers_get_total_sustainers_by_nid($nid, $start = FALSE, $end = FALSE) {
   static $data = array();
@@ -2701,6 +2745,7 @@ function _fundraiser_sustainers_get_total_sustainers_by_nid($nid, $start = FALSE
       // WHERE d.nid = :nid
       //   AND o.created >= :start      // optional
       //   AND 0.created >= :end;       // optional
+      // @todo Update sustainer query.
       $query = db_select('fundraiser_sustainers', 's');
       $query->join('fundraiser_donation', 'd', 'd.did = s.master_did');
       if ($start || $end) {
@@ -2832,14 +2877,18 @@ function fundraiser_sustainers_entity_info() {
       'entity class' => 'Entity',
       'controller class' => 'EntityAPIController',
       'base table' => 'fundraiser_sustainers',
+      'revision table' => 'fundraiser_sustainers_revision',
       'entity keys' => array(
         'id' => 'did',
         'label' => 'did',
+        'revision' => 'revision_id',
       ),
       'fieldable' => FALSE,
       'exportable' => FALSE,
       'module' => 'fundraiser_sustainers',
       'views controller class' => 'FundraiserSustainerRecordViewsController',
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
     ),
   );
 
@@ -2901,9 +2950,28 @@ function fundraiser_sustainers_entity_property_info() {
           'type' => 'text',
           'schema field' => 'lock_id',
         ),
+        'revision_id' => array(
+          'label' => t('Revision ID'),
+          'description' => t('The unique ID of the sustainer record\'s revision.'),
+          'type' => 'integer',
+          'schema field' => 'revision_id',
+        )
       ),
     ),
   );
 
   return $return;
+}
+
+function fundraiser_sustainers_record_create(array $values) {
+  $values += array('is_new' => TRUE);
+
+  return entity_create('fundraiser_sustainer_record', $values);
+}
+
+function fundraiser_sustainers_record_load($did, $reset = FALSE) {
+  $ids = array($did);
+  $entities = entity_load('fundraiser_sustainer_record', $ids, array(), $reset);
+
+  return $entities[$did];
 }
