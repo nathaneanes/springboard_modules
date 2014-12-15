@@ -229,6 +229,29 @@ function fundraiser_sustainers_schema() {
     'primary key' => array('master_did'),
   );
 
+  $schema['fundraiser_sustainers']['fields']['revision_id'] = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'default' => NULL,
+    'description' => 'The ID of the sustainer record\'s default revision.',
+  );
+
+  $schema['fundraiser_sustainers_revision'] = $schema['fundraiser_sustainers'];
+  $schema['fundraiser_sustainers_revision']['fields']['revision_id'] = array(
+    'type' => 'serial',
+    'not null' => TRUE,
+    'description' => 'Primary Key: Unique revision ID.',
+  );
+  $schema['fundraiser_sustainers_revision']['fields']['did'] = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'default' => NULL,
+    'description' => 'The ID of the attached sustainer record.',
+  );
+  $schema['fundraiser_sustainers_revision']['primary key'] = array('revision_id');
+
   return $schema;
 }
 
@@ -487,4 +510,38 @@ function fundraiser_sustainers_update_7007() {
  */
 function fundraiser_sustainers_update_7008() {
   registry_rebuild();
+}
+
+/**
+ * Adds revision support to sustainer records.
+ */
+function fundraiser_sustainers_update_7009() {
+  $revision_id = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'default' => NULL,
+    'description' => 'The ID of the sustainer record\'s default revision.',
+    'initial' => NULL,
+  );
+
+  db_add_field('fundraiser_sustainers', 'revision_id', $revision_id);
+
+  $schema = drupal_get_schema('fundraiser_sustainers', TRUE);
+
+  $schema['fields']['revision_id'] = array(
+    'type' => 'serial',
+    'not null' => TRUE,
+    'description' => 'Primary Key: Unique revision ID.',
+  );
+  $schema['fields']['did'] = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'default' => NULL,
+    'description' => 'The ID of the attached sustainer record.',
+  );
+  $schema['primary key'] = array('revision_id');
+
+  db_create_table('fundraiser_sustainers_revision', $schema);
 }
