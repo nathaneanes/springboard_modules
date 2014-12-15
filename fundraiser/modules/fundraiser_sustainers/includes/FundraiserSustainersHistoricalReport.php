@@ -16,7 +16,7 @@ class FundraiserSustainersHistoricalReport {
   protected $end;
 
   /**
-   * @var array<FundraiserSustainersDailySnapshot>
+   * @var FundraiserSustainersDailySnapshot[]
    */
   protected $snapshots;
 
