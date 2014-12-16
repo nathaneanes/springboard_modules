@@ -60,8 +60,7 @@ build:
             - "xvfb-run -a -s '-screen 0 1024x768x16' java -Xmx256m -jar selenium-server-standalone-2.44.0.jar >> artifacts/selenium.log 2>&1 &"
             - 'mysql -uroot -e "CREATE DATABASE springboard"'
             - 'sudo apt-get install ack-grep -y'
-            # Scrutinizer says we shouldn't need to manually set the access token for composer.
-            # - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
+            - 'composer global config github-oauth.github.com $GITHUB_ACCESS_TOKEN'
             - 'sudo composer self-update'
             - 'composer global require drush/drush:6.5.0'
             - 'composer global require codeception/codeception:2.0.8'
