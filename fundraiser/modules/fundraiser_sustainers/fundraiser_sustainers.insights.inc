@@ -48,15 +48,15 @@ function fundraiser_sustainers_insights_dashboard() {
     $row = array(
       $date,
       $snapshot->getScheduledCharges(),
-      $snapshot->getScheduledValue(),
+      $snapshot->getScheduledValue() / 100,
       $snapshot->getRetriedCharges(),
-      $snapshot->getRetriedValue(),
+      $snapshot->getRetriedValue() / 100,
       $snapshot->getProcessedCharges(),
-      $snapshot->getProcessedValue(),
+      $snapshot->getProcessedValue() / 100,
       $snapshot->getRescheduledCharges(),
-      $snapshot->getRescheduledValue(),
+      $snapshot->getRescheduledValue() / 100,
       $snapshot->getAbandonedCharges(),
-      $snapshot->getAbandonedValue(),
+      $snapshot->getAbandonedValue() / 100,
     );
 
     $processing_stats_row = array(
@@ -96,7 +96,7 @@ function fundraiser_sustainers_insights_dashboard() {
     $row = array(
       $date,
       $snapshot->getScheduledCharges(),
-      $snapshot->getScheduledValue(),
+      $snapshot->getScheduledValue() / 100,
     );
 
     $forecast_rows[] = $row;
@@ -110,7 +110,7 @@ function fundraiser_sustainers_insights_dashboard() {
   $variables = array(
     'today' => $today->getDate()->format('d M Y'),
     'scheduled_charges' => $today->getScheduledCharges(),
-    'total_value' => $today->getTotalValue(),
+    'total_value' => '$ ' . number_format($today->getTotalValue() / 100, 2),
     'successes' => $today->getSuccesses(),
     'failures' => $today->getFailures(),
     'historical_report_table' => theme('table', $table_variables),
