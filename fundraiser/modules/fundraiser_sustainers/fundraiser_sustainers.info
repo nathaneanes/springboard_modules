@@ -10,6 +10,9 @@ dependencies[] = rules
 files[] = includes/FundraiserSustainersHealthChecks.php
 files[] = includes/FundraiserSustainerRecordViewsController.php
 
+files[] = includes/FundraiserSustainerRecordEntity.php
+files[] = includes/FundraiserSustainerRecordEntityController.php
+
 files[] = includes/FundraiserSustainersDailySnapshot.php
 files[] = includes/FundraiserSustainersSnapshotReport.php
 files[] = includes/FundraiserSustainersForecast.php

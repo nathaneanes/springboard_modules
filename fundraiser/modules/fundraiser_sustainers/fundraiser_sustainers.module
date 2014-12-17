@@ -2941,8 +2941,8 @@ function fundraiser_sustainers_entity_info() {
     'fundraiser_sustainer_record' => array(
       'label' => t('Fundraiser sustainer record'),
       'plural label' => t('Fundraiser sustainer records'),
-      'entity class' => 'Entity',
-      'controller class' => 'EntityAPIController',
+      'entity class' => 'FundraiserSustainerRecordEntity',
+      'controller class' => 'FundraiserSustainerRecordEntityController',
       'base table' => 'fundraiser_sustainers',
       'revision table' => 'fundraiser_sustainers_revision',
       'entity keys' => array(
@@ -3022,7 +3022,19 @@ function fundraiser_sustainers_entity_property_info() {
           'description' => t('The unique ID of the sustainer record\'s revision.'),
           'type' => 'integer',
           'schema field' => 'revision_id',
-        )
+        ),
+        'created' => array(
+          'label' => t('Created'),
+          'description' => t('The date and time of when the sustainer record was created.'),
+          'type' => 'date',
+          'schema field' => 'created',
+        ),
+        'changed' => array(
+          'label' => t('Next charge'),
+          'description' => t('The date and time of when the sustainer record was most recently saved.'),
+          'type' => 'date',
+          'schema field' => 'changed',
+        ),
       ),
     ),
   );
@@ -3033,7 +3045,7 @@ function fundraiser_sustainers_entity_property_info() {
 /**
  * @param array $values
  *
- * @return Entity|bool
+ * @return FundraiserSustainerRecordEntity|bool
  */
 function fundraiser_sustainers_record_create(array $values) {
   $values += array('is_new' => TRUE);
@@ -3045,7 +3057,7 @@ function fundraiser_sustainers_record_create(array $values) {
  * @param int $did
  * @param bool $reset
  *
- * @return Entity|bool
+ * @return FundraiserSustainerRecordEntity|bool
  */
 function fundraiser_sustainers_record_load($did, $reset = FALSE) {
   $sustainer_records = fundraiser_sustainers_record_load_multiple(array($did), $reset);
@@ -3057,7 +3069,7 @@ function fundraiser_sustainers_record_load($did, $reset = FALSE) {
  * @param array $dids
  * @param bool $reset
  *
- * @return array
+ * @return FundraiserSustainerRecordEntity[]
  */
 function fundraiser_sustainers_record_load_multiple(array $dids = array(), $reset = FALSE) {
   $entities = entity_load('fundraiser_sustainer_record', $dids, array(), $reset);
