@@ -47,7 +47,7 @@ class FundraiserSustainerRecordEntityController extends EntityAPIController {
    * @return
    *   SAVED_NEW or SAVED_UPDATED depending on the operation performed.
    */
-  public function save(FundraiserSustainerRecordEntity $sustainer_record, DatabaseTransaction $transaction = NULL) {
+  public function save($sustainer_record, DatabaseTransaction $transaction = NULL) {
     $sustainer_record->is_new = !empty($sustainer_record->is_new) || empty($sustainer_record->did);
 
     // Set the timestamp fields.
