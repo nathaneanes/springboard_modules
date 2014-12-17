@@ -131,23 +131,22 @@ class FundraiserSustainersDailySnapshot {
    * @return int
    */
   public function getScheduledCharges() {
-    return $this->scheduledFirstTimeCharges + $this->scheduledRetriesCharges;
+    return $this->scheduledFirstTimeCharges + $this->scheduledRetriesCharges + $this->getProcessedCharges();
   }
 
   /**
    * @return int
    */
   public function getScheduledValue() {
-    return $this->scheduledFirstTimeValue + $this->scheduledRetiresValue;
+    return $this->scheduledFirstTimeValue + $this->scheduledRetiresValue + $this->getProcessedValue();
   }
 
   /**
-   * @todo Is processed value for the day the same as total value for the day?
    *
    * @return int
    */
   public function getTotalValue() {
-    return $this->processedValue;
+    return $this->getScheduledValue();
   }
 
   /**
@@ -299,6 +298,46 @@ class FundraiserSustainersDailySnapshot {
    */
   protected function calculateValues() {
     // Do the DB queries and math stuff here.
+
+    $query = "SELECT did FROM {fundraiser_sustainers} WHERE gateway_resp IS NULL AND attempts = 0 AND DATE(FROM_UNIXTIME(next_charge)) = :date";
+    $replacements = array(
+      ':date' => $this->getDate()->format('Y-m-d'),
+    );
+    $result = db_query($query, $replacements);
+
+    $count = 0;
+    $total = 0;
+    foreach ($result as $row) {
+      $count++;
+      $order = commerce_order_load($row->did);
+      $wrapper = entity_metadata_wrapper('commerce_order', $order);
+      $total += $wrapper->commerce_order_total->amount->value();
+//      $currency_code = $wrapper->commerce_order_total->currency_code->value();
+    }
+
+    $this->scheduledFirstTimeCharges = $count;
+    $this->scheduledFirstTimeValue = $total;
+
+    $query = "SELECT did FROM {fundraiser_sustainers} WHERE gateway_resp = 'retry' AND attempts > 0 AND DATE(FROM_UNIXTIME(next_charge)) = :date";
+    $replacements = array(
+      ':date' => $this->getDate()->format('Y-m-d'),
+    );
+
+    $result = db_query($query, $replacements);
+
+    $count = 0;
+    $total = 0;
+    foreach ($result as $row) {
+      $count++;
+      $order = commerce_order_load($row->did);
+      $wrapper = entity_metadata_wrapper('commerce_order', $order);
+      $total += $wrapper->commerce_order_total->amount->value();
+//      $currency_code = $wrapper->commerce_order_total->currency_code->value();
+    }
+
+    $this->scheduledRetriesCharges = $count;
+    $this->scheduledRetiresValue = $total;
+
   }
 
   /**
