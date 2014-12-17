@@ -19,8 +19,8 @@ class FundraiserSustainerRecordEntityController extends EntityAPIController {
       'gateway_resp' => NULL,
       'attempts' => 0,
       'cancellation_reason' => NULL,
-      'sustainer_key' => NULL,
-      'lock_id' => NULL,
+      'sustainer_key' => '',
+      'lock_id' => '0',
       'revision_id' => NULL,
       'created' => '',
       'changed' => '',
@@ -49,6 +49,11 @@ class FundraiserSustainerRecordEntityController extends EntityAPIController {
    */
   public function save($sustainer_record, DatabaseTransaction $transaction = NULL) {
     $sustainer_record->is_new = !empty($sustainer_record->is_new) || empty($sustainer_record->did);
+
+    // Default to making a new revision if it hasn't been explicitly set.
+    if (!isset($sustainer_record->is_new_revision)) {
+      $sustainer_record->is_new_revision = TRUE;
+    }
 
     // Set the timestamp fields.
     if ($sustainer_record->is_new && empty($sustainer_record->created)) {

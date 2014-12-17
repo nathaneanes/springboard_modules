@@ -3048,7 +3048,6 @@ function fundraiser_sustainers_entity_property_info() {
  * @return FundraiserSustainerRecordEntity|bool
  */
 function fundraiser_sustainers_record_create(array $values) {
-  $values += array('is_new' => TRUE);
 
   return entity_create('fundraiser_sustainer_record', $values);
 }
@@ -3072,12 +3071,6 @@ function fundraiser_sustainers_record_load($did, $reset = FALSE) {
  * @return FundraiserSustainerRecordEntity[]
  */
 function fundraiser_sustainers_record_load_multiple(array $dids = array(), $reset = FALSE) {
-  $entities = entity_load('fundraiser_sustainer_record', $dids, array(), $reset);
 
-  // Default to save a new revision, but calling functions can override it.
-  foreach ($entities as $entity) {
-    $entity->is_new_revision = TRUE;
-  }
-
-  return $entities;
+  return entity_load('fundraiser_sustainer_record', $dids, array(), $reset);
 }
