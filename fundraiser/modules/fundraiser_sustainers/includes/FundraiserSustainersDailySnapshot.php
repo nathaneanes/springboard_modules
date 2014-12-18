@@ -19,6 +19,19 @@ class FundraiserSustainersDailySnapshot {
 
   /**
    * @var int
+   * The timestamp of the day start. Used for database queries.
+   */
+  protected $beginTimestamp;
+
+  /**
+   * @var int
+   * The timestamp of the day start of the following day. Used for database
+   * queries.
+   */
+  protected $endTimestamp;
+
+  /**
+   * @var int
    * Timestamp when this was last saved.
    */
   protected $lastUpdated;
@@ -99,13 +112,26 @@ class FundraiserSustainersDailySnapshot {
    */
   protected $failures;
 
+  protected $successValue;
+
+  protected $failureValue;
 
   /**
    * @param DateTime $date
    */
   public function __construct(DateTime $date) {
     $this->date = $date;
+    $this->date->setTime(0, 0, 0);
+
+    $this->beginTimestamp = $this->date->getTimestamp();
+
+    $date_end = clone $this->date;
+    $date_end->add(new DateInterval('P1D'));
+    $date_end->setTime(0, 0, 0);
+    $this->endTimestamp = $date_end->getTimestamp();
+
     $this->today = new DateTime();
+    $this->today->setTime(0, 0, 0);
 
     $this->load();
   }
@@ -181,14 +207,22 @@ class FundraiserSustainersDailySnapshot {
    * @return int
    */
   public function getProcessedCharges() {
-    return $this->processedCharges;
+    return $this->getSuccesses() + $this->getFailures();
   }
 
   /**
    * @return int
    */
   public function getProcessedValue() {
-    return $this->processedValue;
+    return $this->getSuccessValue() + $this->getFailureValue();
+  }
+
+  public function getSuccessValue() {
+    return $this->successValue;
+  }
+
+  public function getFailureValue() {
+    return $this->failureValue;
   }
 
   /**
@@ -251,7 +285,7 @@ class FundraiserSustainersDailySnapshot {
    * @return bool
    */
   protected function shouldUseLiveData() {
-    return $this->today == $this->date;
+    return $this->today->format('Y-m-d') == $this->date->format('Y-m-d');
   }
 
   /**
@@ -299,9 +333,10 @@ class FundraiserSustainersDailySnapshot {
   protected function calculateValues() {
     // Do the DB queries and math stuff here.
 
-    $query = "SELECT did FROM {fundraiser_sustainers} WHERE gateway_resp IS NULL AND attempts = 0 AND DATE(FROM_UNIXTIME(next_charge)) = :date";
+    $query = "SELECT did FROM {fundraiser_sustainers} WHERE gateway_resp IS NULL AND attempts = 0 AND next_charge >= :begin AND next_charge < :end";
     $replacements = array(
-      ':date' => $this->getDate()->format('Y-m-d'),
+      ':begin' => $this->beginTimestamp,
+      ':end' => $this->endTimestamp,
     );
     $result = db_query($query, $replacements);
 
@@ -309,18 +344,16 @@ class FundraiserSustainersDailySnapshot {
     $total = 0;
     foreach ($result as $row) {
       $count++;
-      $order = commerce_order_load($row->did);
-      $wrapper = entity_metadata_wrapper('commerce_order', $order);
-      $total += $wrapper->commerce_order_total->amount->value();
-//      $currency_code = $wrapper->commerce_order_total->currency_code->value();
+      $total += $this->getValueFromOrder($row->did);
     }
 
     $this->scheduledFirstTimeCharges = $count;
     $this->scheduledFirstTimeValue = $total;
 
-    $query = "SELECT did FROM {fundraiser_sustainers} WHERE gateway_resp = 'retry' AND attempts > 0 AND DATE(FROM_UNIXTIME(next_charge)) = :date";
+    $query = "SELECT did FROM {fundraiser_sustainers} WHERE gateway_resp = 'retry' AND attempts > 0 AND next_charge >= :begin AND next_charge < :end";
     $replacements = array(
-      ':date' => $this->getDate()->format('Y-m-d'),
+      ':begin' => $this->beginTimestamp,
+      ':end' => $this->endTimestamp,
     );
 
     $result = db_query($query, $replacements);
@@ -329,15 +362,66 @@ class FundraiserSustainersDailySnapshot {
     $total = 0;
     foreach ($result as $row) {
       $count++;
-      $order = commerce_order_load($row->did);
-      $wrapper = entity_metadata_wrapper('commerce_order', $order);
-      $total += $wrapper->commerce_order_total->amount->value();
-//      $currency_code = $wrapper->commerce_order_total->currency_code->value();
+      $total += $this->getValueFromOrder($row->did);
     }
 
     $this->scheduledRetriesCharges = $count;
     $this->scheduledRetiresValue = $total;
 
+    $this->calculateSuccessesAndFailures();
+  }
+
+  protected function getValueFromOrder($did) {
+    $order = commerce_order_load($did);
+    $wrapper = entity_metadata_wrapper('commerce_order', $order);
+//      $currency_code = $wrapper->commerce_order_total->currency_code->value();
+
+    return $wrapper->commerce_order_total->amount->value();
+  }
+
+  protected function calculateSuccessesAndFailures() {
+    $successes = 0;
+    $failures = 0;
+    $replacements = array(
+      ':begin' => $this->beginTimestamp,
+      ':end' => $this->endTimestamp,
+    );
+    $results = db_query("SELECT revision_id, master_did, did, revision_timestamp, attempts, gateway_resp FROM {fundraiser_sustainers_revision} WHERE revision_timestamp >= :begin AND next_charge < :end AND gateway_resp IN ('success', 'failed')", $replacements);
+
+    $processed_dids = array();
+    $successValue = 0;
+    $failureValue = 0;
+
+    foreach ($results as $new) {
+      $replacements = array(
+        ':did' => $new->did,
+        ':revision_id' => $new->revision_id,
+        ':attempts' => $new->attempts,
+      );
+      $old = db_query("SELECT revision_id, master_did, did, revision_timestamp, attempts, gateway_resp FROM {fundraiser_sustainers_revision} WHERE did = :did AND revision_id < :revision_id AND attempts < :attempts ORDER BY revision_id DESC LIMIT 0,1", $replacements)->fetchObject();
+
+      if (is_object($old) && !in_array($old->did, $processed_dids)) {
+        debug($this->getDate()->format('Y-m-d'));
+        debug($old);
+        debug($new);
+
+        if ((is_null($old->gateway_resp) || $old->gateway_resp != 'success') && $new->gateway_resp == 'success') {
+          $successes++;
+          $processed_dids[] = $old->did;
+          $successValue += $this->getValueFromOrder($old->did);
+        }
+        elseif ((is_null($old->gateway_resp) || $old->gateway_resp != 'failed') && $new->gateway_resp == 'failed') {
+          $failures++;
+          $processed_dids[] = $old->did;
+          $failureValue += $this->getValueFromOrder($old->did);
+        }
+      }
+    }
+
+    $this->successes = $successes;
+    $this->failures = $failures;
+    $this->successValue = $successValue;
+    $this->failureValue = $failureValue;
   }
 
   /**
