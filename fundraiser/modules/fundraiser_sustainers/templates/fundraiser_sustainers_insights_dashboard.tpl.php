@@ -28,12 +28,12 @@
 <hr>
 
 <div class="insights-historical-report">
-  <h3>Last 10 days</h3>
+  <h3>Last <?php print $range ?></h3>
   <?php print $historical_report_table ?>
 </div>
 
 <div class="insights-forecast-report">
-  <h3>Next 10 days</h3>
+  <h3>Next <?php print $range ?></h3>
   <?php print $forecast_report_table ?>
 </div>
 

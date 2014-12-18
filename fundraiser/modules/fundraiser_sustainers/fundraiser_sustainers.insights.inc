@@ -6,10 +6,10 @@
 
 function fundraiser_sustainers_insights_dashboard() {
   $insights = new FundraiserSustainersInsights();
-
   $today = $insights->getTodaysSnapshot();
+  $range = '90 days';
 
-  $historical_report = $insights->getHistoricalReportPreset('10 days');
+  $historical_report = $insights->getHistoricalReportPreset($range);
   $report_snapshots = $historical_report->getSnapshots();
 
   $headers = array(
@@ -88,7 +88,7 @@ function fundraiser_sustainers_insights_dashboard() {
 
   $forecast_rows = array();
 
-  $forecast_report = $insights->getForecastPreset('10 days');
+  $forecast_report = $insights->getForecastPreset($range);
 
   $future_snapshots = $forecast_report->getSnapshots();
 
@@ -109,6 +109,7 @@ function fundraiser_sustainers_insights_dashboard() {
 
   $variables = array(
     'today' => $today->getDate()->format('d M Y'),
+    'range' => $range,
     'scheduled_charges' => $today->getScheduledCharges(),
     'total_value' => '$ ' . number_format($today->getTotalValue() / 100, 2),
     'successes' => $today->getSuccesses(),

@@ -12,6 +12,14 @@ class FundraiserSustainersInsights {
 
   }
 
+  public function timeframeOptions() {
+    return array(
+      '7 days' => t('Last 7 days'),
+      '30 days' => t('Last 30 days'),
+      '60 days' => t('Last 60 days'),
+    );
+  }
+
   /**
    * Record data for a snapshot on the given day.
    *
