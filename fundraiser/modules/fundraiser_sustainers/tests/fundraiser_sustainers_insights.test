@@ -24,7 +24,7 @@ class FundraiserSustainersInsightsTestCase extends DrupalWebTestCase {
     $insights = new FundraiserSustainersInsights();
     $today_snapshot = $insights->getTodaysSnapshot();
 
-    $this->assertEqual($today_snapshot->getDate(), $today, 'Today\'s date and the snapshot date match.');
+    $this->assertEqual($today_snapshot->getDate()->format('Y-m-d'), $today->format('Y-m-d'), 'Today\'s date and the snapshot date match.');
 
     $snapshot = $insights->getSnapshot(new DateTime('2013-12-01'));
     $this->assertEqual($snapshot->getDate(), new DateTime('2013-12-01'), 'Date reported by snapshot matches.');
@@ -53,14 +53,14 @@ class FundraiserSustainersInsightsTestCase extends DrupalWebTestCase {
   public function testSnapshotData() {
     $snapshot = new MockFundraiserSustainersDailySnapshot(new DateTime());
 
-    $this->assertIdentical($snapshot->getScheduledCharges(), 3);
-    $this->assertIdentical($snapshot->getScheduledValue(), 700);
+    $this->assertIdentical($snapshot->getScheduledCharges(), 1);
+    $this->assertIdentical($snapshot->getScheduledValue(), 200);
 
     $this->assertIdentical($snapshot->getRetriedCharges(), 13);
     $this->assertIdentical($snapshot->getRetriedValue(), 1400);
 
-    $this->assertIdentical($snapshot->getProcessedCharges(), 11);
-    $this->assertIdentical($snapshot->getProcessedValue(), 1200);
+    $this->assertIdentical($snapshot->getProcessedCharges(), 8);
+    $this->assertIdentical($snapshot->getProcessedValue(), 1000);
 
     $this->assertIdentical($snapshot->getRescheduledCharges(), 9);
     $this->assertIdentical($snapshot->getRescheduledValue(), 1000);
@@ -68,9 +68,9 @@ class FundraiserSustainersInsightsTestCase extends DrupalWebTestCase {
     $this->assertIdentical($snapshot->getAbandonedCharges(), 7);
     $this->assertIdentical($snapshot->getAbandonedValue(), 800);
 
-    $this->assertIdentical($snapshot->getTotalValue(), 1200);
-    $this->assertIdentical($snapshot->getSuccesses(), 5);
-    $this->assertIdentical($snapshot->getFailures(), 6);
+    $this->assertIdentical($snapshot->getTotalValue(), 200);
+    $this->assertIdentical($snapshot->getSuccesses(), 3);
+    $this->assertIdentical($snapshot->getFailures(), 5);
   }
 
   protected function debugReport(FundraiserSustainersSnapshotReport $report, $count) {
@@ -88,12 +88,12 @@ class MockFundraiserSustainersDailySnapshot extends FundraiserSustainersDailySna
     $i = 0;
     return array(
       0 => array(
-        'scheduledFirstTimeCharges' => ++$i,
-        'scheduledRetriesCharges' => ++$i,
-        'scheduledFirstTimeValue' => ++$i * 100,
-        'scheduledRetiresValue' => ++$i * 100,
+        'scheduledCharges' => ++$i,
+        'scheduledValue' => ++$i * 100,
         'successes' => ++$i,
+        'successValue' => ++$i * 100,
         'failures' => ++$i,
+        'failureValue' => ++$i * 100,
         'abandonedCharges' => ++$i,
         'abandonedValue' => ++$i * 100,
         'rescheduledCharges' => ++$i,
