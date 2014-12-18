@@ -312,10 +312,13 @@ class FundraiserSustainersDailySnapshot {
     );
 
     if ($this->shouldUseLiveData()) {
-      $query = "SELECT DISTINCT did FROM {fundraiser_sustainers} WHERE next_charge < :end";
+      // When using live data, we're counting both unprocessed and processed.
+      // Later on we remove processed where the next charge is before begin.
+      $query = "SELECT DISTINCT * FROM {fundraiser_sustainers} WHERE next_charge < :end AND gateway_resp NOT IN ('canceled', 'skipped')";
     }
     else {
-      $query = "SELECT DISTINCT did FROM {fundraiser_sustainers_revision} WHERE next_charge >= :begin AND next_charge < :end AND (gateway_resp IS NULL OR gateway_resp = 'retry') ";
+      // When doing past or future date lookups, we tie it to the date range.
+      $query = "SELECT DISTINCT did FROM {fundraiser_sustainers_revision} WHERE next_charge >= :begin AND next_charge < :end AND gateway_resp NOT IN ('canceled', 'skipped')";
       $replacements[':begin'] = $this->beginTimestamp;
     }
 
@@ -324,6 +327,15 @@ class FundraiserSustainersDailySnapshot {
     $count = 0;
     $total = 0;
     foreach ($result as $row) {
+
+      if ($this->shouldUseLiveData()) {
+
+        if (in_array($row->gateway_resp, array('success', 'failed')) && $row->next_charge < $this->beginTimestamp) {
+          continue;
+        }
+
+      }
+
       $count++;
       $total += $this->getValueFromOrder($row->did);
     }
