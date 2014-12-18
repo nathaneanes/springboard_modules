@@ -153,6 +153,25 @@ function fundraiser_sustainers_schema() {
         'not null' => FALSE,
         'default' => '0',
       ),
+      'revision_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => 'The ID of the sustainer record\'s default revision.',
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the sustainer record was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the sustainer record was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('did'),
     'indexes' => array(
@@ -164,6 +183,12 @@ function fundraiser_sustainers_schema() {
       'gateway_master' => array('gateway_resp', 'master_did'),
       'lock_next' => array('lock_id', 'next_charge'),
       'master_next_charge' => array('master_did', 'next_charge'),
+    ),
+    'foreign keys' => array(
+      'current_revision' => array(
+        'table' => 'fundraiser_sustainers_revision',
+        'columns'=> array('revision_id' => 'revision_id'),
+      ),
     ),
   );
 
@@ -227,6 +252,86 @@ function fundraiser_sustainers_schema() {
       ),
     ),
     'primary key' => array('master_did'),
+  );
+
+  $schema['fundraiser_sustainers_revision'] = array(
+    'description' => 'Stores revision information about recurring donations.',
+    'fields' => array(
+      'revision_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique revision ID.',
+      ),
+      'revision_timestamp' => array(
+        'description' => 'The Unix timestamp when this revision was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'log' => array(
+        'description' => 'The log entry explaining the changes in this version.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+      ),
+      'master_did' => array(
+        'description' => 'Master donation id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'did' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => 'The ID of the attached sustainer record.',
+      ),
+      'next_charge' => array(
+        'description' => 'When to charge the donation next.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'gateway_resp' => array(
+        'description' => 'Gateway response to the charge.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'attempts' => array(
+        'description' => 'Number of attempts made to charge.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'cancellation_reason' => array(
+        'description' => 'If cancelled, reason why.',
+        'type' => 'varchar',
+        'length' => '500',
+        'not null' => FALSE,
+      ),
+      'sustainer_key' => array(
+        'description' => 'Value of the sustainer key at the time of record creation.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+        'default' => '',
+      ),
+      'lock_id' => array(
+        'description' => t('Lock id for recurring batches to prevent requeue.'),
+        'type' => 'varchar',
+        'length' => '55',
+        'not null' => FALSE,
+        'default' => '0',
+      ),
+    ),
+    'primary key' => array('revision_id'),
+    'foreign keys' => array(
+      'sustainer' => array(
+        'table' => 'fundraiser_sustainers',
+        'columns'=> array('did' => 'did'),
+      ),
+    ),
   );
 
   return $schema;
@@ -487,4 +592,125 @@ function fundraiser_sustainers_update_7007() {
  */
 function fundraiser_sustainers_update_7008() {
   registry_rebuild();
+}
+
+/**
+ * Adds revision support to sustainer records.
+ */
+function fundraiser_sustainers_update_7009() {
+  // Find new entity classes.
+  registry_rebuild();
+
+  $revision_id = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'default' => NULL,
+    'description' => 'The ID of the sustainer record\'s default revision.',
+    'initial' => NULL,
+  );
+
+  db_add_field('fundraiser_sustainers', 'revision_id', $revision_id);
+
+  $created = array(
+    'description' => 'The Unix timestamp when the sustainer record was created.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'initial' => REQUEST_TIME,
+  );
+
+  db_add_field('fundraiser_sustainers', 'created', $created);
+
+  $changed = array(
+    'description' => 'The Unix timestamp when the sustainer record was most recently saved.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'initial' => REQUEST_TIME,
+  );
+
+  db_add_field('fundraiser_sustainers', 'changed', $changed);
+
+  $schema = array(
+    'description' => 'Stores revision information about recurring donations.',
+    'fields' => array(
+      'revision_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique revision ID.',
+      ),
+      'revision_timestamp' => array(
+        'description' => 'The Unix timestamp when this revision was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'log' => array(
+        'description' => 'The log entry explaining the changes in this version.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+      ),
+      'master_did' => array(
+        'description' => 'Master donation id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'did' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => 'The ID of the attached sustainer record.',
+      ),
+      'next_charge' => array(
+        'description' => 'When to charge the donation next.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'gateway_resp' => array(
+        'description' => 'Gateway response to the charge.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'attempts' => array(
+        'description' => 'Number of attempts made to charge.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'cancellation_reason' => array(
+        'description' => 'If cancelled, reason why.',
+        'type' => 'varchar',
+        'length' => '500',
+        'not null' => FALSE,
+      ),
+      'sustainer_key' => array(
+        'description' => 'Value of the sustainer key at the time of record creation.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+        'default' => '',
+      ),
+      'lock_id' => array(
+        'description' => t('Lock id for recurring batches to prevent requeue.'),
+        'type' => 'varchar',
+        'length' => '55',
+        'not null' => FALSE,
+        'default' => '0',
+      ),
+    ),
+    'primary key' => array('revision_id'),
+    'foreign keys' => array(
+      'sustainer' => array(
+        'table' => 'fundraiser_sustainers',
+        'columns'=> array('did' => 'did'),
+      ),
+    ),
+  );
+
+  db_create_table('fundraiser_sustainers_revision', $schema);
 }
