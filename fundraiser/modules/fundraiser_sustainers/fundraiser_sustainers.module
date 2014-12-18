@@ -219,7 +219,31 @@ function fundraiser_sustainers_menu() {
       'type' => MENU_LOCAL_TASK,
     );
   }
+
+  $items['admin/springboard/reports/sustainers/insights'] = array(
+    'title' => 'Sustainer Insights',
+    'page callback' => 'fundraiser_sustainers_insights_dashboard',
+    'access arguments' => array('administrate recurring donations'),
+    'file' => 'fundraiser_sustainers.insights.inc',
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function fundraiser_sustainers_theme($existing, $type, $theme, $path) {
+  return array(
+    'fundraiser_sustainers_insights_dashboard' => array(
+      'variables' => array(
+        // @todo Add the vars for the templates.
+      ),
+      'path' => $path . '/templates',
+      'template' => 'fundraiser_sustainers_insights_dashboard',
+    ),
+  );
 }
 
 /**
@@ -2890,17 +2914,21 @@ function fundraiser_sustainers_entity_info() {
     'fundraiser_sustainer_record' => array(
       'label' => t('Fundraiser sustainer record'),
       'plural label' => t('Fundraiser sustainer records'),
-      'entity class' => 'Entity',
-      'controller class' => 'EntityAPIController',
+      'entity class' => 'FundraiserSustainerRecordEntity',
+      'controller class' => 'FundraiserSustainerRecordEntityController',
       'base table' => 'fundraiser_sustainers',
+      'revision table' => 'fundraiser_sustainers_revision',
       'entity keys' => array(
         'id' => 'did',
         'label' => 'did',
+        'revision' => 'revision_id',
       ),
       'fieldable' => FALSE,
       'exportable' => FALSE,
       'module' => 'fundraiser_sustainers',
       'views controller class' => 'FundraiserSustainerRecordViewsController',
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
     ),
   );
 
@@ -2962,9 +2990,74 @@ function fundraiser_sustainers_entity_property_info() {
           'type' => 'text',
           'schema field' => 'lock_id',
         ),
+        'revision_id' => array(
+          'label' => t('Revision ID'),
+          'description' => t('The unique ID of the sustainer record\'s revision.'),
+          'type' => 'integer',
+          'schema field' => 'revision_id',
+        ),
+        'created' => array(
+          'label' => t('Created'),
+          'description' => t('The date and time of when the sustainer record was created.'),
+          'type' => 'date',
+          'schema field' => 'created',
+        ),
+        'changed' => array(
+          'label' => t('Next charge'),
+          'description' => t('The date and time of when the sustainer record was most recently saved.'),
+          'type' => 'date',
+          'schema field' => 'changed',
+        ),
       ),
     ),
   );
 
   return $return;
+}
+
+/**
+ * Create a new sustainer record entity object.
+ *
+ * @param array $values
+ *   Default values to populate the record, keyed by the property name.
+ *
+ * @return FundraiserSustainerRecordEntity
+ *   A new instance of the sustainer record entity.
+ */
+function fundraiser_sustainers_record_create(array $values) {
+
+  return entity_create('fundraiser_sustainer_record', $values);
+}
+
+/**
+ * Load a sustainer record entity object by donation ID.
+ *
+ * @param int $did
+ *   The donation ID for the sustainer record to load.
+ * @param bool $reset
+ *   Whether to reset the internal cache for sustainer record entities.
+ *
+ * @return FundraiserSustainerRecordEntity|bool
+ */
+function fundraiser_sustainers_record_load($did, $reset = FALSE) {
+  $sustainer_records = fundraiser_sustainers_record_load_multiple(array($did), $reset);
+
+  return $sustainer_records ? reset($sustainer_records) : FALSE;
+}
+
+/**
+ * Load sustainer records from the Database.
+ *
+ * @param array $dids
+ *   An array of donation IDs.
+ * @param bool $reset
+ *   Whether to reset the internal cache for sustainer record entities.
+ *
+ * @return FundraiserSustainerRecordEntity[]
+ *   An array of sustainer record objects, keyed by donation ID.
+ *   When no records are found, an empty array.
+ */
+function fundraiser_sustainers_record_load_multiple(array $dids = array(), $reset = FALSE) {
+
+  return entity_load('fundraiser_sustainer_record', $dids, array(), $reset);
 }
