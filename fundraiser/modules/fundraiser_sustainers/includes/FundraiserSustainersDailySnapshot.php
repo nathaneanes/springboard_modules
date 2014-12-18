@@ -38,27 +38,15 @@ class FundraiserSustainersDailySnapshot {
 
   /**
    * @var int
-   * Number of first time charges scheduled.
+   * Number of charges scheduled, including processed.
    */
-  protected $scheduledFirstTimeCharges;
+  protected $scheduledCharges;
 
   /**
    * @var int
-   * Number of retry charges scheduled.
+   * Value (in cents) charges scheduled, including processed.
    */
-  protected $scheduledRetriesCharges;
-
-  /**
-   * @var int
-   * Value (in cents) of first time charges scheduled.
-   */
-  protected $scheduledFirstTimeValue;
-
-  /**
-   * @var int
-   * Value (in cents) of retry charges scheduled.
-   */
-  protected $scheduledRetiresValue;
+  protected $scheduledValue;
 
   /**
    * @var int
@@ -157,14 +145,14 @@ class FundraiserSustainersDailySnapshot {
    * @return int
    */
   public function getScheduledCharges() {
-    return $this->scheduledFirstTimeCharges + $this->scheduledRetriesCharges + $this->getProcessedCharges();
+    return $this->scheduledCharges;
   }
 
   /**
    * @return int
    */
   public function getScheduledValue() {
-    return $this->scheduledFirstTimeValue + $this->scheduledRetiresValue + $this->getProcessedValue();
+    return $this->scheduledValue;
   }
 
   /**
@@ -254,34 +242,6 @@ class FundraiserSustainersDailySnapshot {
   }
 
   /**
-   * @return int
-   */
-  public function getScheduledFirstTimeCharges() {
-    return $this->scheduledFirstTimeCharges;
-  }
-
-  /**
-   * @return int
-   */
-  public function getScheduledFirstTimeValue() {
-    return $this->scheduledFirstTimeValue;
-  }
-
-  /**
-   * @return int
-   */
-  public function getScheduledRetiresValue() {
-    return $this->scheduledRetiresValue;
-  }
-
-  /**
-   * @return int
-   */
-  public function getScheduledRetriesCharges() {
-    return $this->scheduledRetriesCharges;
-  }
-
-  /**
    * @return bool
    */
   protected function shouldUseLiveData() {
@@ -332,43 +292,9 @@ class FundraiserSustainersDailySnapshot {
    */
   protected function calculateValues() {
     // Do the DB queries and math stuff here.
+    $this->calculateScheduledProperties();
 
-    $query = "SELECT did FROM {fundraiser_sustainers} WHERE gateway_resp IS NULL AND attempts = 0 AND next_charge >= :begin AND next_charge < :end";
-    $replacements = array(
-      ':begin' => $this->beginTimestamp,
-      ':end' => $this->endTimestamp,
-    );
-    $result = db_query($query, $replacements);
-
-    $count = 0;
-    $total = 0;
-    foreach ($result as $row) {
-      $count++;
-      $total += $this->getValueFromOrder($row->did);
-    }
-
-    $this->scheduledFirstTimeCharges = $count;
-    $this->scheduledFirstTimeValue = $total;
-
-    $query = "SELECT did FROM {fundraiser_sustainers} WHERE gateway_resp = 'retry' AND attempts > 0 AND next_charge >= :begin AND next_charge < :end";
-    $replacements = array(
-      ':begin' => $this->beginTimestamp,
-      ':end' => $this->endTimestamp,
-    );
-
-    $result = db_query($query, $replacements);
-
-    $count = 0;
-    $total = 0;
-    foreach ($result as $row) {
-      $count++;
-      $total += $this->getValueFromOrder($row->did);
-    }
-
-    $this->scheduledRetriesCharges = $count;
-    $this->scheduledRetiresValue = $total;
-
-    $this->calculateSuccessesAndFailures();
+    $this->calculateOtherProperties();
   }
 
   protected function getValueFromOrder($did) {
@@ -379,42 +305,108 @@ class FundraiserSustainersDailySnapshot {
     return $wrapper->commerce_order_total->amount->value();
   }
 
-  protected function calculateSuccessesAndFailures() {
+  protected function calculateScheduledProperties() {
+
+    $replacements = array(
+      ':end' => $this->endTimestamp,
+    );
+
+    if ($this->shouldUseLiveData()) {
+      $query = "SELECT DISTINCT did FROM {fundraiser_sustainers_revision} WHERE next_charge < :end ";
+    }
+    else {
+      $query = "SELECT DISTINCT did FROM {fundraiser_sustainers_revision} WHERE next_charge >= :begin AND next_charge < :end AND (gateway_resp IS NULL OR gateway_resp = 'retry') ";
+      $replacements[':begin'] = $this->beginTimestamp;
+    }
+
+    $result = db_query($query, $replacements);
+
+    $count = 0;
+    $total = 0;
+    foreach ($result as $row) {
+      $count++;
+      $total += $this->getValueFromOrder($row->did);
+    }
+
+    $this->scheduledCharges = $count;
+    $this->scheduledValue = $total;
+  }
+
+  protected function calculateOtherProperties() {
     $successes = 0;
     $failures = 0;
+    $processedDids = array();
+    $successValue = 0;
+    $failureValue = 0;
+    $retriedCharges = 0;
+    $retriedValue = 0;
+    $rescheduledCharges = 0;
+    $rescheduledValue = 0;
+    $abandonedCharges = 0;
+    $abandonedValue = 0;
+
     $replacements = array(
       ':begin' => $this->beginTimestamp,
       ':end' => $this->endTimestamp,
     );
-    $results = db_query("SELECT revision_id, master_did, did, revision_timestamp, attempts, gateway_resp FROM {fundraiser_sustainers_revision} WHERE revision_timestamp >= :begin AND next_charge < :end AND gateway_resp IN ('success', 'failed')", $replacements);
-
-    $processed_dids = array();
-    $successValue = 0;
-    $failureValue = 0;
+    // Get all revisions that were created on this day.
+    // Ordering these so the new transitions get checked first, and earlier
+    // ones get ignored if there are multiple transitions per day.
+    // @todo Is that a good idea?
+    $results = db_query("SELECT revision_id, master_did, did, revision_timestamp, attempts, gateway_resp FROM {fundraiser_sustainers_revision} WHERE revision_timestamp >= :begin AND revision_timestamp < :end ORDER BY revision_timestamp DESC", $replacements);
 
     foreach ($results as $new) {
+      // Skip it if we've seen this donation id before.
+      if (in_array($new->did, $processedDids)) {
+        continue;
+      }
+
       $replacements = array(
         ':did' => $new->did,
         ':revision_id' => $new->revision_id,
         ':attempts' => $new->attempts,
       );
+
+      // Get the preceding revision that would indicate processing happened.
       $old = db_query("SELECT revision_id, master_did, did, revision_timestamp, attempts, gateway_resp FROM {fundraiser_sustainers_revision} WHERE did = :did AND revision_id < :revision_id AND attempts < :attempts ORDER BY revision_id DESC LIMIT 0,1", $replacements)->fetchObject();
 
-      if (is_object($old) && !in_array($old->did, $processed_dids)) {
-        debug($this->getDate()->format('Y-m-d'));
-        debug($old);
-        debug($new);
+      if (is_object($old)) {
 
-        if ((is_null($old->gateway_resp) || $old->gateway_resp != 'success') && $new->gateway_resp == 'success') {
+        // Normalize the gateway response.
+        if (is_null($old->gateway_resp)) {
+          $old->gateway_resp = '';
+        }
+        if (is_null($new->gateway_resp)) {
+          $new->gateway_resp = '';
+        }
+
+        // Get the amount value from the related commerce order.
+        $value = $this->getValueFromOrder($old->did);
+
+        if ($old->gateway_resp != 'success' && $new->gateway_resp == 'success') {
           $successes++;
-          $processed_dids[] = $old->did;
-          $successValue += $this->getValueFromOrder($old->did);
+          $successValue += $value;
         }
-        elseif ((is_null($old->gateway_resp) || $old->gateway_resp != 'failed') && $new->gateway_resp == 'failed') {
+        else {
           $failures++;
-          $processed_dids[] = $old->did;
-          $failureValue += $this->getValueFromOrder($old->did);
+          $failureValue += $value;
         }
+
+        if ($old->gateway_resp == 'retry') {
+          $retriedCharges++;
+          $retriedValue += $value;
+        }
+
+        if ($new->gateway_resp == 'retry') {
+          $rescheduledCharges++;
+          $rescheduledValue += $value;
+        }
+        elseif ($new->gateway_resp == 'failed') {
+          $abandonedCharges++;
+          $abandonedValue += $value;
+        }
+
+        $processedDids[] = $old->did;
       }
     }
 
@@ -422,18 +414,25 @@ class FundraiserSustainersDailySnapshot {
     $this->failures = $failures;
     $this->successValue = $successValue;
     $this->failureValue = $failureValue;
+
+    $this->retriedCharges = $retriedCharges;
+    $this->retriedValue = $retriedValue;
+    $this->rescheduledCharges = $rescheduledCharges;
+    $this->rescheduledValue = $rescheduledValue;
+    $this->abandonedCharges = $abandonedCharges;
+    $this->abandonedValue = $abandonedValue;
   }
 
   /**
    *
    */
   protected function initializeValues() {
-    $this->scheduledFirstTimeCharges = 0;
-    $this->scheduledRetriesCharges = 0;
-    $this->scheduledFirstTimeValue = 0;
-    $this->scheduledRetiresValue = 0;
+    $this->scheduledCharges = 0;
+    $this->scheduledCharges = 0;
     $this->successes = 0;
     $this->failures = 0;
+    $this->successValue = 0;
+    $this->failureValue = 0;
 
     $this->abandonedCharges = 0;
     $this->abandonedValue = 0;

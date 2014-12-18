@@ -12,5 +12,9 @@ class FundraiserSustainersHistoricalReport extends FundraiserSustainersSnapshotR
     // end is allowed to be today.
 
     parent::__construct($begin, $end);
+
+    // Reverse the array for historical reports so the newest snapshots
+    // are first.
+    $this->snapshots = array_reverse($this->snapshots);
   }
 }
