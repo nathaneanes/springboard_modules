@@ -727,6 +727,9 @@ function fundraiser_sustainers_process_recurring_donations() {
 
 /**
  * Process an individual sustainer record.
+ *
+ * @param FundraiserSustainerRecordEntity $sustainer_record
+ *   The sustainer record related to the donation to process.
  */
 function fundraiser_sustainers_process_single_recurring_donation(&$log, $sustainer_record, $sustainer_key) {
   if ($sustainer_key == $sustainer_record->sustainer_key) {
@@ -753,6 +756,7 @@ function fundraiser_sustainers_process_single_recurring_donation(&$log, $sustain
 
     // Make sure this charge wasn't partially processed already (e.g., cron
     // crashed awaiting response from the gateway).
+    // Reloading the sustainer record and forcing a cache reset.
     $donation->recurring = fundraiser_sustainers_record_load($donation->did, TRUE);
 
     if ($sustainer_record->gateway_resp == 'processing') {
@@ -1576,25 +1580,14 @@ function fundraiser_sustainers_change_charge_date($master_did, $new_day) {
       $time_delta = $delta * -1;
 
       if ($time_delta < 0) {
-//        $operator = '-';
         $time_delta = $time_delta * -1;
-
         $donation->recurring->next_charge -= $time_delta;
       }
       else {
-//        $operator = '+';
         $donation->recurring->next_charge += $time_delta;
       }
 
       $donation->recurring->save();
-
-
-//      // @todo Update sustainers query.
-//      $query = db_update('fundraiser_sustainers')
-//        ->expression('next_charge', '( next_charge ' . $operator . ' :delta )', array(':delta' => $time_delta))
-//        ->condition('master_did', $master_did, '=')
-//        ->condition('did', $donation->did, '=')
-//        ->execute();
 
       // Add a comment.
       global $user;
@@ -2426,7 +2419,8 @@ function _fundraiser_sustainers_send_cc_notification($master_did, $uid) {
   $user = user_load($uid);
   // Load the last remaining order so we can get some info for the email.
   // @todo Update sustainer query.
-  // @todo I don't think this is quarenteed to get the last donation.
+  // @todo This makes an assumption that this mail is only sent when there is
+  // one remaining donation..
   $did = db_query('SELECT did FROM {fundraiser_sustainers} WHERE master_did = :master_did AND gateway_resp IS NULL LIMIT 0,1', // Coder: this is ok.
     array(':master_did' => $master_did))->fetchColumn();
   $donation = fundraiser_donation_get_donation($did);
@@ -2636,12 +2630,23 @@ function _fundraiser_sustainers_get_donations_next_charge($master_did) {
 function _fundraiser_sustainers_get_donations_last_charge($master_did) {
   $now = strtotime('now');
   // @todo Update sustainer query.
-  return db_query('SELECT * FROM {fundraiser_sustainers} ' .
-    'WHERE master_did = :master_did ' .
-    'AND next_charge > :now ' .
-    'ORDER BY next_charge DESC ' .
-    'LIMIT 0, 1',
-    array(':master_did' => $master_did, ':now' => $now))->fetchObject();
+
+  $query = new EntityFieldQuery();
+  $query
+    ->entityCondition('entity_type', 'fundraiser_sustainer_record')
+    ->propertyCondition('master_did', $master_did)
+    ->propertyCondition('next_charge', $now, '>')
+    ->propertyOrderBy('next_charge', 'DESC')
+    ->range(0, 1);
+
+  $result = $query->execute();
+  if (isset($result['fundraiser_sustainer_record'])) {
+    $dids = array_keys($result['fundraiser_sustainer_record']);
+
+    return fundraiser_sustainers_record_load(reset($dids));
+  }
+
+  return FALSE;
 }
 
 /**
@@ -2726,6 +2731,8 @@ function fundraiser_sustainers_count_donations_in_series($master_did) {
 /**
  * DB function, get unlocked donations ready to be processed.
  * Lock them.
+ *
+ * @return FundraiserSustainerRecordEntity[]
  */
 function _fundraiser_sustainers_cron_get_recurring($limit = 1000) {
   $lock_id = uniqid();
@@ -2772,7 +2779,7 @@ function fundraiser_sustainers_lock_dids($dids, $batch_id) {
 /**
  * @param string $lock_id
  *
- * @return array|bool
+ * @return FundraiserSustainerRecordEntity[]
  */
 function fundraiser_sustainers_record_load_by_lock_id($lock_id) {
   $query = new EntityFieldQuery();

@@ -306,13 +306,13 @@ class FundraiserSustainersDailySnapshot {
   }
 
   protected function calculateScheduledProperties() {
-
+    // success, canceled, skipped, failed, retry, processing, NULL
     $replacements = array(
       ':end' => $this->endTimestamp,
     );
 
     if ($this->shouldUseLiveData()) {
-      $query = "SELECT DISTINCT did FROM {fundraiser_sustainers_revision} WHERE next_charge < :end ";
+      $query = "SELECT DISTINCT did FROM {fundraiser_sustainers} WHERE next_charge < :end";
     }
     else {
       $query = "SELECT DISTINCT did FROM {fundraiser_sustainers_revision} WHERE next_charge >= :begin AND next_charge < :end AND (gateway_resp IS NULL OR gateway_resp = 'retry') ";
@@ -387,7 +387,7 @@ class FundraiserSustainersDailySnapshot {
           $successes++;
           $successValue += $value;
         }
-        else {
+        elseif (in_array($new->gateway_resp, array('retry', 'failed'))) {
           $failures++;
           $failureValue += $value;
         }
