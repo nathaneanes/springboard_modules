@@ -361,12 +361,18 @@ function fundraiser_sustainers_skip_submit($form, &$form_state) {
   $donation->status_charged = _fundraiser_commerce_get_charged_by_status('skipped');
   fundraiser_donation_update($donation);
 
-  db_query('UPDATE {fundraiser_sustainers} SET ' .
-    'gateway_resp = \'skipped\',' .
-    'lock_id = 0, ' .
-    'cancellation_reason = \'skipped by admin\' ' .
-    'WHERE did = :did', array(':did' => $donation->did)
-  );
+//  db_query('UPDATE {fundraiser_sustainers} SET ' .
+//    'gateway_resp = \'skipped\',' .
+//    'lock_id = 0, ' .
+//    'cancellation_reason = \'skipped by admin\' ' .
+//    'WHERE did = :did', array(':did' => $donation->did)
+//  );
+
+  $sustainer_record = fundraiser_sustainers_record_load($donation->did);
+  $sustainer_record->gateway_resp = 'skipped';
+  $sustainer_record->lock_id = 0;
+  $sustainer_record->cancellation_reason = 'skipped by admin';
+  $sustainer_record->save();
 
   if (module_exists('salesforce_genmap')) {
     salesforce_genmap_send_object_to_queue('salesforce_donation', 'update', $donation->node, $donation->did, $donation, 'donation');
@@ -768,15 +774,20 @@ function fundraiser_sustainers_process_single_recurring_donation(&$log, $recurri
     }
 
     // Update the sustainer record to processing status.
-    db_query('
-      UPDATE {fundraiser_sustainers}
-      SET
-        attempts = attempts + 1,
-        gateway_resp = :status
-      WHERE
-        did = :did;',
-      array(':status' => FUNDRAISER_SUSTAINERS_PROCESSING_STATUS, ':did' => $recurring->did)
-    );
+//    db_query('
+//      UPDATE {fundraiser_sustainers}
+//      SET
+//        attempts = attempts + 1,
+//        gateway_resp = :status
+//      WHERE
+//        did = :did;',
+//      array(':status' => FUNDRAISER_SUSTAINERS_PROCESSING_STATUS, ':did' => $recurring->did)
+//    );
+
+    $sustainer_record = fundraiser_sustainers_record_load($recurring->did);
+    $sustainer_record->attempts++;
+    $sustainer_record->gateway_resp = FUNDRAISER_SUSTAINERS_PROCESSING_STATUS;
+    $sustainer_record->save();
 
     // Then go through each one of these to charge.
     // Since we already created the donation (and saved any CC info at that time).
@@ -1628,19 +1639,23 @@ function fundraiser_sustainers_change_charge_date($master_did, $new_day) {
       $delta = ($original_charge_date - $new_day) * 86400;
       $time_delta = $delta * -1;
 
+      $sustainer_record = fundraiser_sustainers_record_load($donation->did);
       if ($time_delta < 0) {
         $operator = '-';
         $time_delta = $time_delta * -1;
+        $sustainer_record->next_charge -= $time_delta;
       }
       else {
         $operator = '+';
+        $sustainer_record->next_charge += $time_delta;
       }
+      $sustainer_record->save();
 
-      $query = db_update('fundraiser_sustainers')
-        ->expression('next_charge', '( next_charge ' . $operator . ' :delta )', array(':delta' => $time_delta))
-        ->condition('master_did', $master_did, '=')
-        ->condition('did', $donation->did, '=')
-        ->execute();
+//      $query = db_update('fundraiser_sustainers')
+//        ->expression('next_charge', '( next_charge ' . $operator . ' :delta )', array(':delta' => $time_delta))
+//        ->condition('master_did', $master_did, '=')
+//        ->condition('did', $donation->did, '=')
+//        ->execute();
 
       // Add a comment.
       global $user;
@@ -2288,10 +2303,15 @@ function fundraiser_sustainers_fundraiser_donation_success($donation) {
   }
   else {
     // And update the sustainer table.
-    db_query('UPDATE {fundraiser_sustainers} SET ' .
-      'gateway_resp = \'success\', attempts = attempts + 1 ' .
-      'WHERE did = :did', array(':did' => $donation->did)
-    );
+    $sustainer_record = fundraiser_sustainers_record_load($donation->did);
+    $sustainer_record->gateway_resp = 'success';
+    $sustainer_record->attempts++;
+    $sustainer_record->save();
+
+//    db_query('UPDATE {fundraiser_sustainers} SET ' .
+//      'gateway_resp = \'success\', attempts = attempts + 1 ' .
+//      'WHERE did = :did', array(':did' => $donation->did)
+//    );
     // For all recurring when processed, check if we need to send a notice about the set almost done.
     if (_fundraiser_sustainers_count_donations_recurr_remaining($donation->recurring->master_did) == 1) {
       _fundraiser_sustainers_send_cc_notification($donation->recurring->master_did, $donation->uid);
@@ -2307,16 +2327,22 @@ function fundraiser_sustainers_fundraiser_donation_success($donation) {
  */
 function fundraiser_sustainers_donation_retry($donation) {
   // Set the sustainer record up in a retry state.
-  db_query('
-    UPDATE {fundraiser_sustainers}
-    SET
-      gateway_resp = :status,
-      lock_id = 0,
-      next_charge = unix_timestamp(timestampadd(DAY, 1, from_unixtime(next_charge)))
-    WHERE
-      did = :did',
-    array(':status' => FUNDRAISER_SUSTAINERS_RETRY_STATUS, ':did' => $donation->did)
-  );
+  $sustainer_record = fundraiser_sustainers_record_load($donation->did);
+  $sustainer_record->gateway_resp = FUNDRAISER_SUSTAINERS_RETRY_STATUS;
+  $sustainer_record->lock_id = 0;
+  $sustainer_record->next_charge = strtotime('+1 day', $sustainer_record->next_charge);
+  $sustainer_record->save();
+
+//  db_query('
+//    UPDATE {fundraiser_sustainers}
+//    SET
+//      gateway_resp = :status,
+//      lock_id = 0,
+//      next_charge = unix_timestamp(timestampadd(DAY, 1, from_unixtime(next_charge)))
+//    WHERE
+//      did = :did',
+//    array(':status' => FUNDRAISER_SUSTAINERS_RETRY_STATUS, ':did' => $donation->did)
+//  );
 
   // Create a log entry.
   watchdog('fundraiser_sustainers', 'Payment for recurring donation @id has failed @attempts times. It will be processed again in 1 day. Gateway message: @message',
@@ -2337,14 +2363,18 @@ function fundraiser_sustainers_donation_retry($donation) {
  */
 function fundraiser_sustainers_donation_fail($donation) {
   // Set the sustainer record up in a failed state.
-  db_query('
-    UPDATE {fundraiser_sustainers}
-    SET
-      gateway_resp = :status
-    WHERE
-      did = :did',
-    array(':status' => FUNDRAISER_SUSTAINERS_FAILED_STATUS, ':did' => $donation->did)
-  );
+  $sustainer_record = fundraiser_sustainers_record_load($donation->did);
+  $sustainer_record->gateway_resp = FUNDRAISER_SUSTAINERS_FAILED_STATUS;
+  $sustainer_record->save();
+
+//  db_query('
+//    UPDATE {fundraiser_sustainers}
+//    SET
+//      gateway_resp = :status
+//    WHERE
+//      did = :did',
+//    array(':status' => FUNDRAISER_SUSTAINERS_FAILED_STATUS, ':did' => $donation->did)
+//  );
 
   // Create a log entry.
   watchdog('fundraiser_sustainers', 'Payment for recurring donation @id has
@@ -2365,10 +2395,14 @@ function fundraiser_sustainers_donation_fail($donation) {
  *   Donation id.
  */
 function fundraiser_sustainers_charge_attempt_count($did) {
-  $attempt_count = db_query('SELECT attempts FROM {fundraiser_sustainers} WHERE did = :did',
-      array(':did' => $did))->fetchColumn();
+  $sustainer_record = fundraiser_sustainers_record_load($did);
 
-  return $attempt_count;
+  return $sustainer_record->attempts;
+
+//  $attempt_count = db_query('SELECT attempts FROM {fundraiser_sustainers} WHERE did = :did',
+//      array(':did' => $did))->fetchColumn();
+//
+//  return $attempt_count;
 }
 
 /**
@@ -2382,10 +2416,15 @@ function fundraiser_sustainers_fundraiser_donation_cancel($donation) {
   }
 
   // Set the gateway resp field to canceled.
-  db_update('fundraiser_sustainers')
-    ->fields(array('gateway_resp' => 'canceled', 'cancellation_reason' => $reason))
-    ->condition('did', $donation->did)
-    ->execute();
+  $sustainer_record = fundraiser_sustainers_record_load($donation->did);
+  $sustainer_record->gateway_resp = 'canceled';
+  $sustainer_record->cancellation_reason = $reason;
+  $sustainer_record->save();
+
+//  db_update('fundraiser_sustainers')
+//    ->fields(array('gateway_resp' => 'canceled', 'cancellation_reason' => $reason))
+//    ->condition('did', $donation->did)
+//    ->execute();
 }
 
 /**
@@ -2530,7 +2569,10 @@ function _fundraiser_sustainers_create_recurring($donation) {
   }
   if (!$donation_data) {
     $record = $donation;
-    drupal_write_record('fundraiser_sustainers', $record);
+    $sustainer_record = fundraiser_sustainers_record_create($record);
+    $sustainer_record->save();
+
+//    drupal_write_record('fundraiser_sustainers', $record);
   }
   else {
     _fundraiser_sustainers_update_recurring($donation);
@@ -2541,9 +2583,11 @@ function _fundraiser_sustainers_create_recurring($donation) {
  * CRUD style DB function for fundraiser_sustainers.
  */
 function _fundraiser_sustainers_get_recurring_by_did($did) {
-  return db_query('SELECT * FROM {fundraiser_sustainers} ' .
-    'WHERE did = :did',
-    array(':did' => $did))->fetchObject();
+  return fundraiser_sustainers_record_load($did);
+
+//  return db_query('SELECT * FROM {fundraiser_sustainers} ' .
+//    'WHERE did = :did',
+//    array(':did' => $did))->fetchObject();
 }
 
 /**
@@ -2561,8 +2605,12 @@ function _fundraiser_sustainers_update_recurring($donation) {
     _fundraiser_sustainers_create_recurring($donation);
   }
   else {
-    $record = array_merge((array) $donation_data, $donation); // Merge data together so we get everything in the record.
-    drupal_write_record('fundraiser_sustainers', $record, 'did');
+//    $record = array_merge((array) $donation_data, $donation);
+    foreach ($donation as $key => $value) {
+      $donation_data->$key = $value;
+    }
+    $donation_data->save();
+//    drupal_write_record('fundraiser_sustainers', $record, 'did');
   }
 }
 
@@ -2570,7 +2618,9 @@ function _fundraiser_sustainers_update_recurring($donation) {
  * CRUD style DB function for fundraiser_sustainers.
  */
 function _fundraiser_sustainers_delete_recurring($did) {
-  db_delete('fundraiser_sustainers')->condition('did', $did)->execute();
+  $sustainer_record = fundraiser_sustainers_record_load($did);
+  $sustainer_record->delete();
+//  db_delete('fundraiser_sustainers')->condition('did', $did)->execute();
 }
 
 /**
@@ -2636,12 +2686,18 @@ function _fundraiser_sustainers_get_donations_recurr_by_member($did) {
  */
 function _fundraiser_sustainers_get_donations_next_charge($master_did) {
   $now = strtotime('now');
-  return db_query('SELECT * FROM {fundraiser_sustainers} ' .
+  $did = db_query('SELECT did FROM {fundraiser_sustainers} ' .
     'WHERE master_did = :master_did ' .
     'AND next_charge > :now ' .
     'ORDER BY next_charge ASC ' .
     'LIMIT 0, 1',
     array(':master_did' => $master_did, ':now' => $now))->fetchObject();
+
+  if (is_object($did)) {
+    return fundraiser_sustainers_record_load($did->did);
+  }
+
+  return FALSE;
 }
 
 /**
@@ -2649,12 +2705,19 @@ function _fundraiser_sustainers_get_donations_next_charge($master_did) {
  */
 function _fundraiser_sustainers_get_donations_last_charge($master_did) {
   $now = strtotime('now');
-  return db_query('SELECT * FROM {fundraiser_sustainers} ' .
+
+  $did = db_query('SELECT did FROM {fundraiser_sustainers} ' .
     'WHERE master_did = :master_did ' .
     'AND next_charge > :now ' .
     'ORDER BY next_charge DESC ' .
     'LIMIT 0, 1',
     array(':master_did' => $master_did, ':now' => $now))->fetchObject();
+
+  if (is_object($did)) {
+    return fundraiser_sustainers_record_load($did->did);
+  }
+
+  return FALSE;
 }
 
 /**
