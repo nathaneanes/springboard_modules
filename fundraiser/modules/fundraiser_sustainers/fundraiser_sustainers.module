@@ -327,12 +327,19 @@ function fundraiser_sustainers_standalone_cron() {
  */
 function fundraiser_sustainers_charge_now($did) {
   // Given a did, update the charge date to now.
-  $donation = new stdClass();
-  $donation->did = $did;
-  $donation->next_charge = strtotime('now');
-  _fundraiser_sustainers_update_recurring($donation);
+//  $donation = new stdClass();
+//  $donation->did = $did;
+//  $donation->next_charge = strtotime('now');
+//
+//  _fundraiser_sustainers_update_recurring($donation);
+
+  $new_charge = strtotime('now');
+  $sustainer_record = fundraiser_sustainers_record_load($did);
+  $sustainer_record->next_charge = $new_charge;
+  $sustainer_record->save();
+
   drupal_set_message(t('The charge date for donation #@did has been advanced to @date. It will be charged on the next Fundraiser cron.',
-    array('@did' => $did, '@date' => format_date(strtotime('now')))));
+    array('@did' => $did, '@date' => format_date($new_charge))));
   // Afterwards return where we came from.
   drupal_goto( drupal_get_destination() );
 }
@@ -701,7 +708,11 @@ function fundraiser_sustainers_salesforce_sync_complete_item($item, $result) {
 function fundraiser_sustainers_fundraiser_donation_delete($donation) {
   if ($donation->donation['recurs_monthly'] == TRUE) {
     // If a recurring donation has been cancelled, we should drop it out of the recurring table.
-    _fundraiser_sustainers_delete_recurring($donation->did);
+    // _fundraiser_sustainers_delete_recurring($donation->did);
+    $sustainer_record = fundraiser_sustainers_record_load($did);
+    if ($sustainer_record) {
+      $sustainer_record->delete();
+    }
   }
 }
 
@@ -1337,7 +1348,7 @@ function fundraiser_sustainers_edit_form($did) {
   $billing_info .= '</div>';
 
   // Format payment schedule into a data table
-  $donation_set = _fundraiser_sustainers_get_donations_recurr_by_member($did);
+  $donation_set = _fundraiser_sustainers_get_donations_recurr_by_masterdid($did);
   $donations_header = array('Donation ID', 'Amount', 'Charge Date', 'Processed Status');
 
   if (user_access('administrate recurring donations')) {
@@ -2676,7 +2687,7 @@ function _fundraiser_sustainers_get_donation_sets() {
 function _fundraiser_sustainers_get_donations_recurr_by_member($did) {
   $donations = db_query('SELECT * FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
-    'WHERE d.did = :did OR r.master_did = :master_did ' .
+    'WHERE r.did = :did OR r.master_did = :master_did ' .
     'ORDER BY r.next_charge ASC', array(':did' => $did, ':master_did' => $did))->fetchAll();
   return $donations;
 }
