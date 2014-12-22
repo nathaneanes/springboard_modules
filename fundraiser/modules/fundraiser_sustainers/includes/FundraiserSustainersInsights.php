@@ -28,8 +28,7 @@ class FundraiserSustainersInsights {
    * @param DateTime $time
    */
   public function takeSnapshot(DateTime $time) {
-    $snapshot = new FundraiserSustainersDailySnapshot($time);
-    $snapshot->save();
+    return new FundraiserSustainersDailySnapshot($time);
   }
 
   /**

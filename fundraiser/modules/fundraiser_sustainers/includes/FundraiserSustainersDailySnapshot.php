@@ -31,6 +31,16 @@ class FundraiserSustainersDailySnapshot {
   protected $endTimestamp;
 
   /**
+   * @var bool
+   */
+  protected $isNew;
+
+  /**
+   * @var bool
+   */
+  protected $isComplete;
+
+  /**
    * @var int
    * Timestamp when this was last saved.
    */
@@ -120,6 +130,9 @@ class FundraiserSustainersDailySnapshot {
 
     $this->today = new DateTime();
     $this->today->setTime(0, 0, 0);
+
+    $this->isNew = TRUE;
+    $this->isComplete = FALSE;
 
     $this->load();
   }
@@ -253,30 +266,76 @@ class FundraiserSustainersDailySnapshot {
    */
   protected function load() {
     $this->initializeValues();
-    if ($this->shouldUseLiveData()) {
-      // Calculate new stuff since it's today.
-      $this->calculateValues();
+    $save = FALSE;
+    // Look for a record in the DB and load it.
+    // If there's no existing record, calculate new values.
+    $row = $this->findRow();
+
+    if (is_object($row)) {
+      $this->isNew = FALSE;
+      $this->loadRow($row);
     }
-    else {
-      // Look for a record in the DB and load it.
-      // If there's no existing record, calculate new values.
-      $row = $this->findRow();
-      if (empty($row)) {
-        $this->calculateValues();
+
+    if (!$this->isComplete || $this->shouldUseLiveData()) {
+      $this->calculateValues();
+      $save = TRUE;
+
+      if ($this->endTimestamp <= $this->today->getTimestamp()) {
+        $this->isComplete = TRUE;
       }
-      else {
-        foreach ($row as $key => $value) {
-          $this->$key = $value;
-        }
-      }
+    }
+
+    if ($save) {
+      $this->save();
     }
   }
 
+  protected function loadRow($row) {
+    $this->lastUpdated = $row->last_updated;
+    $this->isComplete = $row->complete;
+    $this->scheduledCharges = $row->scheduled_charges;
+    $this->scheduledValue = $row->scheduled_value;
+    $this->successes = $row->successes;
+    $this->successValue = $row->success_value;
+    $this->failures = $row->failures;
+    $this->failureValue = $row->failure_value;
+    $this->retriedCharges = $row->retried_charges;
+    $this->retriedValue = $row->retried_value;
+    $this->rescheduledCharges = $row->rescheduled_charges;
+    $this->rescheduledValue = $row->rescheduled_value;
+    $this->abandonedCharges = $row->abandoned_charges;
+    $this->abandonedValue = $row->abandoned_value;
+  }
+
   /**
-   *
+   * Set up a record array for drupal_write_record.
    */
   protected function saveRow() {
-    // Set up a record array for drupal_write_record or db_insert.
+
+    $record = array(
+      'date' => $this->getDate()->format('Y-m-d'),
+      'last_updated' => $this->lastUpdated,
+      'complete' => $this->isComplete,
+      'scheduled_charges' => $this->scheduledCharges,
+      'scheduled_value' => $this->scheduledValue,
+      'successes' => $this->successes,
+      'success_value' => $this->successValue,
+      'failures' => $this->failures,
+      'failure_value' => $this->failureValue,
+      'retried_charges' => $this->retriedCharges,
+      'retried_value' => $this->retriedValue,
+      'rescheduled_charges' => $this->rescheduledCharges,
+      'rescheduled_value' => $this->rescheduledValue,
+      'abandoned_charges' => $this->abandonedCharges,
+      'abandoned_value' => $this->abandonedValue,
+    );
+
+    if ($this->isNew) {
+      drupal_write_record('fundraiser_sustainers_insights_snapshot', $record);
+    }
+    else {
+      drupal_write_record('fundraiser_sustainers_insights_snapshot', $record, 'date');
+    }
   }
 
   /**
@@ -284,7 +343,7 @@ class FundraiserSustainersDailySnapshot {
    */
   protected function findRow() {
     // Query for rows by the Y-m-d date string.
-    return array();
+    return db_query("SELECT * FROM {fundraiser_sustainers_insights_snapshot} WHERE date = :date", array(':date' => $this->getDate()->format('Y-m-d')))->fetchObject();
   }
 
   /**

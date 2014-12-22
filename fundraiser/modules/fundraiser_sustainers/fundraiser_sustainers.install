@@ -334,6 +334,65 @@ function fundraiser_sustainers_schema() {
     ),
   );
 
+  $schema['fundraiser_sustainers_insights_snapshot'] = array(
+    'description' => 'Stores snapshot information about sustainer processing.',
+    'fields' => array(
+      'date' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+      ),
+      'last_updated' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'complete' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+      ),
+      'scheduled_charges' => array(
+        'type' => 'int',
+      ),
+      'scheduled_value' => array(
+        'type' => 'int',
+      ),
+      'successes' => array(
+        'type' => 'int',
+      ),
+      'failures' => array(
+        'type' => 'int',
+      ),
+      'success_value' => array(
+        'type' => 'int',
+      ),
+      'failure_value' => array(
+        'type' => 'int',
+      ),
+      'retried_charges' => array(
+        'type' => 'int',
+      ),
+      'retried_value' => array(
+        'type' => 'int',
+      ),
+      'rescheduled_charges' => array(
+        'type' => 'int',
+      ),
+      'rescheduled_value' => array(
+        'type' => 'int',
+      ),
+      'abandoned_charges' => array(
+        'type' => 'int',
+      ),
+      'abandoned_value' => array(
+        'type' => 'int',
+      ),
+    ),
+    'primary key' => array('date'),
+  );
+
   return $schema;
 }
 
@@ -713,4 +772,72 @@ function fundraiser_sustainers_update_7009() {
   );
 
   db_create_table('fundraiser_sustainers_revision', $schema);
+
+  db_query("INSERT INTO {fundraiser_sustainers_revision} (revision_timestamp, log, master_did, did, next_charge, gateway_resp, attempts, cancellation_reason, sustainer_key, lock_id) SELECT changed, 'initial revision', master_did, did, next_charge, gateway_resp, attempts, cancellation_reason, sustainer_key, lock_id FROM {fundraiser_sustainers}");
+
+  db_query("UPDATE {fundraiser_sustainers} s INNER JOIN {fundraiser_sustainers_revision} r ON r.did = s.did SET s.revision_id = r.revision_id");
+
+}
+
+function fundraiser_sustainers_update_7010() {
+  $snapshot_schema = array(
+    'description' => 'Stores snapshot information about sustainer processing.',
+    'fields' => array(
+      'date' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+      ),
+      'last_updated' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'complete' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+      ),
+      'scheduled_charges' => array(
+        'type' => 'int',
+      ),
+      'scheduled_value' => array(
+        'type' => 'int',
+      ),
+      'successes' => array(
+        'type' => 'int',
+      ),
+      'failures' => array(
+        'type' => 'int',
+      ),
+      'success_value' => array(
+        'type' => 'int',
+      ),
+      'failure_value' => array(
+        'type' => 'int',
+      ),
+      'retried_charges' => array(
+        'type' => 'int',
+      ),
+      'retried_value' => array(
+        'type' => 'int',
+      ),
+      'rescheduled_charges' => array(
+        'type' => 'int',
+      ),
+      'rescheduled_value' => array(
+        'type' => 'int',
+      ),
+      'abandoned_charges' => array(
+        'type' => 'int',
+      ),
+      'abandoned_value' => array(
+        'type' => 'int',
+      ),
+    ),
+    'primary key' => array('date'),
+  );
+
+  db_create_table('fundraiser_sustainers_insights_snapshot', $snapshot_schema);
 }

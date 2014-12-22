@@ -2810,7 +2810,7 @@ function fundraiser_sustainers_count_donations_in_series($master_did) {
  * DB function, get unlocked donations ready to be processed.
  * Lock them.
  */
-function _fundraiser_sustainers_cron_get_recurring($limit = 1000) {
+function _fundraiser_sustainers_cron_get_recurring($limit = 200) {
   $now = strtotime('now');
   $uni_batch_id = uniqid();
   $max_processing_attempts = variable_get('fundraiser_sustainers_max_processing_attempts', 3);
