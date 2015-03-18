@@ -981,9 +981,6 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
   foreach (module_implements('fundraiser_commerce_generate_line_items') as $module) {
     $function = $module . '_fundraiser_commerce_generate_line_items';
     $line_items_created = $function($donation, $order);
-    if ($line_items_created == TRUE){
-      break;
-    }
   }
 
   if (!$line_items_created) {
@@ -1005,7 +1002,8 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
     commerce_line_item_save($line_item_wrapper->value());
 
     // Add the line item to the order.
-    $order->commerce_line_items[LANGUAGE_NONE][0]['line_item_id'] = $line_item->line_item_id;
+    $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+    $order_wrapper->commerce_line_items[] = $line_item;
   }
 
   // Save the customer information. Contains billing info.
