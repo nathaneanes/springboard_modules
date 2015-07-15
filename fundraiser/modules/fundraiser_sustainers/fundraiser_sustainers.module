@@ -1288,7 +1288,7 @@ function fundraiser_sustainers_edit_form($did) {
 
   // Grab all associated donation information.
   $donation = fundraiser_donation_get_donation($did);
-
+  dsm($donation);
   // Check permissions, we don't want to show this to someone who doesn't have permission.
   global $user;
   if (($donation->user->uid != $user->uid) && !user_access('administrate recurring donations')) {
@@ -1297,11 +1297,12 @@ function fundraiser_sustainers_edit_form($did) {
 
   // Grab the next to be charged for misc info.
   $remaining = _fundraiser_sustainers_get_donations_recurr_remaining($donation->did);
+  dsm($remaining);
   $next_donation = $donation;
   if ($remaining) {
     $next_donation = fundraiser_donation_get_donation($remaining[0]->did);
   }
-
+  dsm($next_donation);
   $number = '';
   $type = '';
 
