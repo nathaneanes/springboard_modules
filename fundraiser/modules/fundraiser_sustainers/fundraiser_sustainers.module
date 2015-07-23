@@ -2066,6 +2066,10 @@ function fundraiser_sustainers_update_billing_info_in_series($donations, $submis
  *
  */
 function _fundraiser_sustainers_create_future_orders($donation, $month, $year, $source_donation = NULL, $start = NULL) {
+  
+  // Hook to allow other modules to execute code upon the creation of future orders.
+  module_invoke_all('fundraiser_sustainers_create_future_orders', $donation, $month, $year, $source_donation, $start);
+  
   // Handle the rest of the set based on the given donation.
   if (is_null($start)) {
     $start = strtotime("now");
