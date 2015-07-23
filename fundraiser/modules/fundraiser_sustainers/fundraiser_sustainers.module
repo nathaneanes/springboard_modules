@@ -1037,8 +1037,8 @@ function fundraiser_sustainers_fundraiser_donation_form($form, $form_state) {
         'invisible' => array(),
       );
       foreach ($supporting_gateways as $supporting_gateway) {
-        $selector = ':input[name*=payment_method],value="' . $supporting_gateway . '"';
-        $recurs_monthly_field['#states']['invisible'][$selector] = array('!value' => $supporting_gateway);
+        $selector = ':input[name*=payment_method]';
+        $recurs_monthly_field['#states']['visible'][$selector][] = array('value' => $supporting_gateway);
       }
     }
   }
