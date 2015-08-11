@@ -69,6 +69,7 @@ function fundraiser_sustainers_admin_view($did) {
   $rows = array();
   // Get the data.
   $donation = fundraiser_donation_get_donation($did);
+  dsm($donation);
   $donation_set = _fundraiser_sustainers_get_donations_recurr_by_member($did);
   if ($donation_set) {
     $donation_set = _fundraiser_sustainers_get_donations_recurr_by_masterdid($donation_set[0]->master_did);
@@ -104,6 +105,7 @@ function fundraiser_sustainers_admin_view($did) {
  */
 function fundraiser_sustainers_admin_edit($did) {
   if (is_numeric($did)) {
+    dsm(fundraiser_donation_get_donation($did));
     // Get the master did and return the form for that.
     $sustainer_info = _fundraiser_sustainers_get_recurring_by_did($did);
     return fundraiser_sustainers_edit_form($sustainer_info->master_did);

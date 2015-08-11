@@ -1085,6 +1085,7 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
   if (!empty($donation->gateway)) {
     $method_instance = is_string($donation->gateway) ? _fundraiser_gateway_info($donation->gateway) : $donation->gateway;
   }
+  
   else {
     $info = _fundraiser_get_donation_gateway($donation->did);
     $method_instance = _fundraiser_gateway_info($info['id']);
@@ -1236,6 +1237,7 @@ function _fundraiser_commerce_fundraiser_donation_process_internal($donation, $i
   // to the execution function. All the information needed is on the donation object.
   if (isset($info['charge callback']) && function_exists($info['charge callback'])) {
     $charge_function = $info['charge callback'];
+    dsm($charge_function);
     $success = $charge_function($method_instance, $donation);
   }
   // Update the donation and order data and result values based on the success.

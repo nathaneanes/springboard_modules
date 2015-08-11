@@ -814,6 +814,9 @@ function commerce_litle_cc_vault_submit_form_submit($payment_method, $pane_form,
  *   Commerce Payment Status.
  */
 function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
+  
+  dsm('trying to charge CC');
+  
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   $txn_type = COMMERCE_CREDIT_AUTH_CAPTURE;
 
@@ -1187,9 +1190,8 @@ function commerce_litle_echeck_vault_submit_form_submit($payment_method, $pane_f
  *   TRUE if the transaction was successful.
  */
 function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
-
+  dsm('charging echeck');
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
-
   // remote_id is 'routingNum|litleToken'
   list($routing_num, $litle_token) = explode('|', $card_data->remote_id);
 
@@ -1208,6 +1210,8 @@ function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_da
       'accType' => $card_data->card_type,
     ),
   );
+  
+  dsm($request_data);
 
   $request_data['billToAddress'] = commerce_litle_format_bill_to_address($order_wrapper);
 
@@ -1225,7 +1229,7 @@ function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_da
   // Save the transaction information to get transaction id.
   commerce_payment_transaction_save($transaction);
   $request_data['id'] = substr($transaction->transaction_id, 0, 20);
-
+    
   // Allow modules to alter the values sent to Litle.
   $context = array(
     'payment_method' => $payment_method,

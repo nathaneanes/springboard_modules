@@ -1744,6 +1744,7 @@ function fundraiser_sustainers_billing_update_form($form, &$form_state, $donatio
   );
   // Abort if the gateway does not support recurring.
   $info = _fundraiser_get_donation_gateway($donation->did);
+  dsm($info);
   if (!_fundraiser_sustainers_supports_recurring($info['allow_recurring'], $donation->donation['payment_method'])) {
     $form['fundraiser-sustainer-billing'] = array(
       '#markup' => '<div class="fundraiser-sustainer-no-recur-support">' .
