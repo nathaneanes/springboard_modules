@@ -2513,11 +2513,10 @@ function fundraiser_sustainers_fundraiser_donation_cancel($donation) {
  */
 function fundraiser_sustainers_processor_key_match() {
   static $key;
-  dsm($key);
 
   // Construct a site string to match the key against
   $site = trim($_SERVER['HTTP_HOST']) . rtrim(base_path(), '/');
-  dsm($site);
+
   if (!empty($key)) {
     return $key == $site;
   }
@@ -2527,7 +2526,6 @@ function fundraiser_sustainers_processor_key_match() {
   // This value is normally set in the glue module for payment.
   // Get the key and see if it matches the server's host.
   $key = fundraiser_sustainers_get_sustainer_key_value();
-  dsm($key);
   if ($key == $site) {
     return TRUE;
   }
