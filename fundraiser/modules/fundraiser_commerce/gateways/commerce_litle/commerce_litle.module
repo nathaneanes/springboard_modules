@@ -1187,9 +1187,9 @@ function commerce_litle_echeck_vault_submit_form_submit($payment_method, $pane_f
  *   TRUE if the transaction was successful.
  */
 function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
-
+  dsm('charging echeck');
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
-
+  dsm($order->order_id);
   // remote_id is 'routingNum|litleToken'
   list($routing_num, $litle_token) = explode('|', $card_data->remote_id);
 
@@ -1225,7 +1225,9 @@ function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_da
   // Save the transaction information to get transaction id.
   commerce_payment_transaction_save($transaction);
   $request_data['id'] = substr($transaction->transaction_id, 0, 20);
-
+  
+  dsm($transaction);
+  
   // Allow modules to alter the values sent to Litle.
   $context = array(
     'payment_method' => $payment_method,

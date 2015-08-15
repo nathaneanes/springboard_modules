@@ -1085,6 +1085,7 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
   if (!empty($donation->gateway)) {
     $method_instance = is_string($donation->gateway) ? _fundraiser_gateway_info($donation->gateway) : $donation->gateway;
   }
+  
   else {
     $info = _fundraiser_get_donation_gateway($donation->did);
     $method_instance = _fundraiser_gateway_info($info['id']);
@@ -1229,6 +1230,7 @@ function fundraiser_commerce_fundraiser_donation_after_process($donation) {
 function _fundraiser_commerce_fundraiser_donation_process_internal($donation, $info) {
   // Now execute the custom charge, keeping in mind for Commerce, the charge function is a submit handler.
   $method_instance = commerce_payment_method_instance_load($info['id']); // From commerce_payment.module.
+  dsm($method_instance);
   // This gets us: The payment method instance object with the addition of the settings array. Settings are per Rule.
   // Since the plugin is only relevant in one situation, and then it's Not optional, no need to make it a module.
   // Call the function with donation, this will handle internal translation for the specific gateway.
