@@ -1146,6 +1146,10 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
 function fundraiser_commerce_fundraiser_donation_process($donation) {
   // Grab the gateway configuration from fundraisers data.
   $info = _fundraiser_get_donation_gateway($donation->did);
+  
+  dsm($info);
+  dsm($donation);
+  
   $method_instance = commerce_payment_method_instance_load($info['id']); // From commerce_payment.module.
   // Choose which of two ways to process this.
   if (in_array($donation->donation['payment_method'], $info['offsite_processing'])) {
@@ -1230,7 +1234,7 @@ function fundraiser_commerce_fundraiser_donation_after_process($donation) {
 function _fundraiser_commerce_fundraiser_donation_process_internal($donation, $info) {
   // Now execute the custom charge, keeping in mind for Commerce, the charge function is a submit handler.
   $method_instance = commerce_payment_method_instance_load($info['id']); // From commerce_payment.module.
-  dsm($method_instance);
+  dsm($info);
   // This gets us: The payment method instance object with the addition of the settings array. Settings are per Rule.
   // Since the plugin is only relevant in one situation, and then it's Not optional, no need to make it a module.
   // Call the function with donation, this will handle internal translation for the specific gateway.
@@ -1239,6 +1243,8 @@ function _fundraiser_commerce_fundraiser_donation_process_internal($donation, $i
   if (isset($info['charge callback']) && function_exists($info['charge callback'])) {
     $charge_function = $info['charge callback'];
     $success = $charge_function($method_instance, $donation);
+    dsm($success);
+    dsm($donation);
   }
   // Update the donation and order data and result values based on the success.
   _fundraiser_commerce_update_donation_result_data($donation, $success);

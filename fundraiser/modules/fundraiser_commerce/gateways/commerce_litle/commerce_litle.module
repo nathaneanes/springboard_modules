@@ -814,6 +814,9 @@ function commerce_litle_cc_vault_submit_form_submit($payment_method, $pane_form,
  *   Commerce Payment Status.
  */
 function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
+  
+  dsm('trying to charge CC');
+  
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   $txn_type = COMMERCE_CREDIT_AUTH_CAPTURE;
 
@@ -1208,6 +1211,8 @@ function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_da
       'accType' => $card_data->card_type,
     ),
   );
+  
+  dsm($request_data);
 
   $request_data['billToAddress'] = commerce_litle_format_bill_to_address($order_wrapper);
 
