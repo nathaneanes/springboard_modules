@@ -2716,7 +2716,7 @@ function _fundraiser_sustainers_get_donation_sets_recurr_by_uid($uid) {
   $donation_sets = db_query('SELECT r.master_did, MIN(r.next_charge) AS start_date, ' .
     'MAX(r.next_charge) AS expire_date FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
-    'WHERE d.uid = :uid and d.status <> :status' .
+    'WHERE d.uid = :uid and d.status <> :status ' .
     'GROUP BY r.master_did ' .
     'ORDER BY r.master_did DESC', array(':uid' => $uid, ':status' => 'payment_method_removed'))->fetchAll();
   foreach ($donation_sets as $index => $donation_set) {
