@@ -175,8 +175,8 @@ function springboard_views_fundraiser_views_data() {
         'field' => 'uid',
       ),
       'commerce_order' => array(
-        'left_field' => 'did',
-        'field' => 'order_id',
+        'left_field' => 'order_id',
+        'field' => 'did',
       ),
     ),
   );
