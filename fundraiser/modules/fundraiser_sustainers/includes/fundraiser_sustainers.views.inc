@@ -11,7 +11,11 @@
 function fundraiser_sustainers_views_data() {
   
   $data['fundraiser_sustainers']['table'] = array(
-    'group' => t('Fundraiser sustainer records'),
+    'base' => array(
+      'field' => 'did',
+      'title' => t('Fundraiser Sustainer records'),
+      'help' => t('Fundraiser sustainer series orders.'),
+    ),
     'join' => array(
       'commerce_order' => array(
         'left_field' => 'order_id',
