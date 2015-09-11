@@ -9,6 +9,17 @@
  * Implements hook_views_data().
  */
 function fundraiser_sustainers_views_data() {
+  
+  $data['fundraiser_sustainers']['table'] = array(
+    'group' => t('Fundraiser sustainer records'),
+    'join' => array(
+      'commerce_order' => array(
+        'left_field' => 'order_id',
+        'field' => 'did',
+      ),
+    ),
+  );
+  
   // Fundraiser sustainers log table.
   $data['fundraiser_sustainers_log']['table']['group']  = t('Fundraiser sustainers log');
 
