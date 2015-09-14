@@ -680,7 +680,7 @@ class SalesforceSync {
             // robust escaping is needed consider using DOMDocument or SimpleXML
             // to beef this up.
             dsm($value);
-            $item->sobject->fields[$field_name] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+            $item->sobject->fields[$field_name] = htmlspecialchars($value, ENT_XML1, 'UTF-8');
             dsm($value);
             break;
 
