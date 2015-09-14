@@ -188,9 +188,9 @@ class SalesforceSync {
    *   exception then it will return FALSE.
    */
   public function sendBatch($batch) {
-    
+    dsm(count($batch['items']));
     $this->sendBatchPrepare($batch);
-
+    dsm(count($batch['items']));
     // If all items failed tokenization it is possible that the batch as a whole
     // will fail.
     if (isset($batch['sobjects']) && empty($batch['sobjects'])) {
