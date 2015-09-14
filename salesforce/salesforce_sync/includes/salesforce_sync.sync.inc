@@ -189,9 +189,6 @@ class SalesforceSync {
    */
   public function sendBatch($batch) {
     
-    dsm($batch);
-    dsm($this->soap);
-    
     $this->sendBatchPrepare($batch);
 
     // If all items failed tokenization it is possible that the batch as a whole
@@ -243,6 +240,9 @@ class SalesforceSync {
           // Unsupported operation.
           throw new Exception('salesforce_sync does not support the operation "' . $batch['operation'] . '"');
       }
+      
+      dsm($batch);
+      dsm($results);
 
       // Process results.
       $items = isset($batch['items']) ? $batch['items'] : (isset($batch['sobjects']) ? $batch['sobjects'] : array());
