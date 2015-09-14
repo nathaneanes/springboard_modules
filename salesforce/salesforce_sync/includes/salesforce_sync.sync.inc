@@ -188,6 +188,10 @@ class SalesforceSync {
    *   exception then it will return FALSE.
    */
   public function sendBatch($batch) {
+    
+    dsm($batch);
+    dsm($this->soap);
+    
     $this->sendBatchPrepare($batch);
 
     // If all items failed tokenization it is possible that the batch as a whole
