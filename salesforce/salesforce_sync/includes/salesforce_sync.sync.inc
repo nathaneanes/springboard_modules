@@ -679,7 +679,9 @@ class SalesforceSync {
             // htmlspecialchars will be sufficient for most strings. If more
             // robust escaping is needed consider using DOMDocument or SimpleXML
             // to beef this up.
+            dsm($value);
             $item->sobject->fields[$field_name] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+            dsm($value);
             break;
 
           // Numeric types cannot be null or they will throw a SOAP fault. Let's
