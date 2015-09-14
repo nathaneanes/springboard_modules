@@ -188,9 +188,9 @@ class SalesforceSync {
    *   exception then it will return FALSE.
    */
   public function sendBatch($batch) {
-    dsm(count($batch['items']));
+    
     $this->sendBatchPrepare($batch);
-    dsm(count($batch['items']));
+
     // If all items failed tokenization it is possible that the batch as a whole
     // will fail.
     if (isset($batch['sobjects']) && empty($batch['sobjects'])) {
@@ -240,10 +240,7 @@ class SalesforceSync {
           // Unsupported operation.
           throw new Exception('salesforce_sync does not support the operation "' . $batch['operation'] . '"');
       }
-      
-      dsm($batch);
-      dsm($results);
-      
+
       // Process results.
       $items = isset($batch['items']) ? $batch['items'] : (isset($batch['sobjects']) ? $batch['sobjects'] : array());
       // If all items failed token checks, $results could be empty.
@@ -679,9 +676,7 @@ class SalesforceSync {
             // htmlspecialchars will be sufficient for most strings. If more
             // robust escaping is needed consider using DOMDocument or SimpleXML
             // to beef this up.
-            dsm($value);
-            $item->sobject->fields[$field_name] = htmlspecialchars($value, ENT_XML1, 'UTF-8');
-            dsm($value);
+            $item->sobject->fields[$field_name] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
             break;
 
           // Numeric types cannot be null or they will throw a SOAP fault. Let's
