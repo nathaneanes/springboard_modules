@@ -240,9 +240,6 @@ class SalesforceSync {
           // Unsupported operation.
           throw new Exception('salesforce_sync does not support the operation "' . $batch['operation'] . '"');
       }
-      
-      dsm($batch);
-      dsm($results);
 
       // Process results.
       $items = isset($batch['items']) ? $batch['items'] : (isset($batch['sobjects']) ? $batch['sobjects'] : array());
