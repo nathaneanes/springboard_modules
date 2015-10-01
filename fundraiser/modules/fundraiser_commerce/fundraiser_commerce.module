@@ -1237,7 +1237,6 @@ function _fundraiser_commerce_fundraiser_donation_process_internal($donation, $i
   // to the execution function. All the information needed is on the donation object.
   if (isset($info['charge callback']) && function_exists($info['charge callback'])) {
     $charge_function = $info['charge callback'];
-    dsm($charge_function);
     $success = $charge_function($method_instance, $donation);
   }
   // Update the donation and order data and result values based on the success.
