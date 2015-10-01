@@ -2100,7 +2100,9 @@ function _fundraiser_sustainers_create_future_orders($donation, $month, $year, $
 
   // Get existing donations, if they exist.
   $existing_recurring = _fundraiser_sustainers_get_donations_recurr_by_masterdid($donation->did);
-
+  dsm($existing_recurring);
+  dsm($schedule->scheduleAmount());
+  dsm($schedule->scheduleLimit());
   unset($existing_recurring[0]); // 0 is the master, we don't need to count it.
 
   $processed = 0;
