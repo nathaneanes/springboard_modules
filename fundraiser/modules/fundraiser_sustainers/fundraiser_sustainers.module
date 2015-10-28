@@ -1849,7 +1849,6 @@ function _fundraiser_sustainers_create_field_from_info($donation, $field_key, $f
     $field['#multiple'] =
       (isset($field_info['#extra']['multiple']) && $field_info['#extra']['multiple'] == 1) ? TRUE : FALSE;
   }
-  dsm($field);
   return $field;
 }
 
@@ -2100,9 +2099,6 @@ function _fundraiser_sustainers_create_future_orders($donation, $month, $year, $
 
   // Get existing donations, if they exist.
   $existing_recurring = _fundraiser_sustainers_get_donations_recurr_by_masterdid($donation->did);
-  dsm($existing_recurring);
-  dsm($schedule->scheduleAmount());
-  dsm($schedule->scheduleLimit());
   unset($existing_recurring[0]); // 0 is the master, we don't need to count it.
 
   $processed = 0;
@@ -2112,7 +2108,6 @@ function _fundraiser_sustainers_create_future_orders($donation, $month, $year, $
 
     // Check if we have a donation for this next period.
     if (!isset($existing_recurring[$increment])) {
-      dsm('creating new donation');
       // Create a new one donation from the source or master donation
       $new_donation = !empty($source_donation) ? _fundraiser_donation_copy($source_donation) : _fundraiser_donation_copy($donation);
       $new_donation->sid = 0; // Not actually submitted, it's automated, so no sid.
@@ -2167,8 +2162,6 @@ function _fundraiser_sustainers_create_future_orders($donation, $month, $year, $
       $previous_charge = $next;
     }
     else {
-      dsm($existing_recurring[$increment]);
-      dsm('unsetting something');
       // Unset this from the existing recurring. By the time this loop is done,
       // only recurring orders outside of our range will still be in the set.
       unset($existing_recurring[$increment]);
