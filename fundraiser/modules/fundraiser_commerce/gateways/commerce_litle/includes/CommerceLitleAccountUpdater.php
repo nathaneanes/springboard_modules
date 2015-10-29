@@ -266,7 +266,7 @@ class CommerceLitleAccountUpdater {
    */
   protected function updateBillingInfo($master_donation, array $submission_fields, $processed_donation) {
     // Use the just-processed donation to create new donations if needed.
-    fundraiser_sustainers_update_billing_info_create_new_donations($master_donation, $processed_donation, $submission_fields);
+    bitch_springboard_update_billing_info_create_new_donations($master_donation, $processed_donation, $submission_fields)
 
     // Now grab the remaining unprocessed donations and update their
     // billing info.
