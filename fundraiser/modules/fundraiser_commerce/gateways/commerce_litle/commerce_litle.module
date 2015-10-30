@@ -814,9 +814,6 @@ function commerce_litle_cc_vault_submit_form_submit($payment_method, $pane_form,
  *   Commerce Payment Status.
  */
 function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
-  
-  dsm('trying to charge CC');
-  
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   $txn_type = COMMERCE_CREDIT_AUTH_CAPTURE;
 
@@ -1190,7 +1187,6 @@ function commerce_litle_echeck_vault_submit_form_submit($payment_method, $pane_f
  *   TRUE if the transaction was successful.
  */
 function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
-  dsm('charging echeck');
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   // remote_id is 'routingNum|litleToken'
   list($routing_num, $litle_token) = explode('|', $card_data->remote_id);
@@ -1211,8 +1207,6 @@ function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_da
     ),
   );
   
-  dsm($request_data);
-
   $request_data['billToAddress'] = commerce_litle_format_bill_to_address($order_wrapper);
 
   $txn_type = COMMERCE_LITLE_CHECK_SALE;
@@ -1968,4 +1962,16 @@ function commerce_litle_fundraiser_sustainers_series_end_date_alter(&$end_date, 
  */
 function commerce_litle_account_updater_supported() {
   return module_exists('fundraiser_sustainers') && module_exists('commerce_cardonfile');
+}
+
+/**
+ * Implements hook_commerce_litle_request_alter().
+ *
+ * Change the orderSource to recurring if this is a recurring
+ * (but not original) sustainer charge via a credit card.
+ */
+function commerce_litle_commerce_litle_request_alter(&$request, $context) {
+  if ($context['type'] == 'cc_vault' || $context['type'] == 'echeck_vault') {
+    $request['orderSource'] = 'recurring';
+  }
 }
