@@ -206,7 +206,9 @@ function commerce_litle_fundraiser_commerce_charge($method_instance, $donation) 
       // Card on file,
       $method_instance['settings']['cardonfile'] = TRUE;
     }
-
+    dsm($donation);
+    dsm($pane_values);
+    dsm($order);
     $result = commerce_litle_cc_submit_form_submit($method_instance, $pane_form, $pane_values, $order, $charge);
   }
   elseif ($donation->donation['payment_method'] == 'bank account') {

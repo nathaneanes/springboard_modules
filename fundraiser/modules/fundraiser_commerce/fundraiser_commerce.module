@@ -775,7 +775,7 @@ function _fundraiser_commerce_client_state_ajax_submit($form, $form_state, &$mes
   // After the replace event add focus to the state field. This makes for a smooth transition
   // in some browsers for users who tab between fields.
   $build_array = fundraiser_get_form_field($form['#calling_module'], $form, 'state');
-
+  
   return array(
     '#type' => 'ajax',
     '#commands' => array(
@@ -812,6 +812,15 @@ function _fundraiser_commerce_zone_field_display($form, $form_state, $field) {
       }
     }
   }
+  
+  // If the 'country' field exists directly in the $form_state variable:
+  elseif (array_key_exists('country', $form_state['values'])) {
+    $country_id = $form_state['values']['country'];
+    // Filter options down to just the zones available for this country.
+    if (isset($countries->countries[$country_id])) {
+      $available_zones = $countries->countries[$country_id]->zones;
+    }
+  }
 
   // If no zones yet, load from the field settings
   if (empty($available_zones)) {
@@ -838,16 +847,22 @@ function _fundraiser_commerce_zone_field_display($form, $form_state, $field) {
       $new_zone_options[$zone->iso] = $zone->zone_name;
     }
     $field['#options'] = $new_zone_options;
+    $field['#prefix'] = '<div id="zone-select-wrapper" class="zone-select">';
+    $field['#suffix'] = '</div>';
   }
   else {
     // If there are no zones to match, then fall back on a non-select solution.
     $field['#type'] = 'textfield';
+    $field['#required'] = FALSE;
+    $field['#size'] = 30;
+    $field['#default_value'] = 'ZZZ';
+    $field['#value'] = 'ZZZ';
+    $field['#prefix'] = '<div id="zone-select-wrapper" class="zone-input">';
+    $field['#suffix'] = '</div>';
 
     // Unset the options to avoid validation errors
     unset($field['#options']);
   }
-  $field['#prefix'] = '<div id="zone-select-wrapper">';
-  $field['#suffix'] = '</div>';
   return $field;
 }
 
@@ -949,6 +964,7 @@ function fundraiser_commerce_fundraiser_donation_get_donation($donation) {
  * Implements hook_fundraiser_donation_create().
  */
 function fundraiser_commerce_fundraiser_donation_create($donation) {
+  dsm($donation);
   /**
    * Commerce checkout is usually what creates an account.
    * If we don't have that turned on (and there's no other reason to)
@@ -1090,16 +1106,22 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
     $info = _fundraiser_get_donation_gateway($donation->did);
     $method_instance = _fundraiser_gateway_info($info['id']);
   }
-
+  dsm($donation->donation['payment_fields']);
   $scrubbed_fields = isset($donation->donation['payment_fields']) ? $donation->donation['payment_fields'] : array();
+  dsm($donation->donation['payment_fields']);
   if (isset($method_instance['scrub callback']) && function_exists($method_instance['scrub callback'])) {
+    dsm($donation->donation['payment_fields']);
     $callback = $method_instance['scrub callback'];
     $scrubbed_fields = $callback($scrubbed_fields, $donation->donation['payment_method']);
+    dsm($callback);
+    dsm($donation->donation['payment_fields']);
   }
   $data = array(
     'payment_method' => $donation->donation['payment_method'],
     'payment_fields' => $scrubbed_fields,
   );
+  dsm($_SESSION);
+  dsm($donation->donation['payment_fields']);
 
   // There may be information already in the donation->data in the case of sustainer duplication.
   // We want to make sure this information propogates if it's available on the donation object already.
