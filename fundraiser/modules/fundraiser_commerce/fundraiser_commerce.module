@@ -778,6 +778,7 @@ function _fundraiser_commerce_client_state_ajax_submit($form, $form_state, &$mes
   
   dsm($build_array);
   dsm($form);
+  dsm(':input[name="' . $build_array['#name'] . '"]');
   
   return array(
     '#type' => 'ajax',
