@@ -776,10 +776,6 @@ function _fundraiser_commerce_client_state_ajax_submit($form, $form_state, &$mes
   // in some browsers for users who tab between fields.
   $build_array = fundraiser_get_form_field($form['#calling_module'], $form, 'state');
   
-  dsm($build_array);
-  dsm($form);
-  dsm(':input[name="' . $build_array['#name'] . '"]');
-  
   return array(
     '#type' => 'ajax',
     '#commands' => array(
@@ -814,6 +810,15 @@ function _fundraiser_commerce_zone_field_display($form, $form_state, $field) {
       if (isset($countries->countries[$country_id])) {
         $available_zones = $countries->countries[$country_id]->zones;
       }
+    }
+  }
+  
+  //
+  elseif (array_key_exists('country', $form_state['values'])) {
+    $country_id = $form_state['values']['country'];
+    // Filter options down to just the zones available for this country.
+    if (isset($countries->countries[$country_id])) {
+      $available_zones = $countries->countries[$country_id]->zones;
     }
   }
 
