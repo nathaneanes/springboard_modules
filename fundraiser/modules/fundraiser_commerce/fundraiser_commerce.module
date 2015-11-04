@@ -774,7 +774,7 @@ function _fundraiser_commerce_client_state_ajax_submit($form, $form_state, &$mes
   // selected country.
   // After the replace event add focus to the state field. This makes for a smooth transition
   // in some browsers for users who tab between fields.
-  $build_array = fundraiser_get_form_field('fundraiser_webform', $form, 'state');
+  $build_array = fundraiser_get_form_field($form['#calling_module'], $form, 'state');
   
   dsm($build_array);
   dsm($form);
