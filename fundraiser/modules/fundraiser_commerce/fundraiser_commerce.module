@@ -813,7 +813,7 @@ function _fundraiser_commerce_zone_field_display($form, $form_state, $field) {
     }
   }
   
-  //
+  // 
   elseif (array_key_exists('country', $form_state['values'])) {
     $country_id = $form_state['values']['country'];
     // Filter options down to just the zones available for this country.
@@ -851,6 +851,7 @@ function _fundraiser_commerce_zone_field_display($form, $form_state, $field) {
   else {
     // If there are no zones to match, then fall back on a non-select solution.
     $field['#type'] = 'textfield';
+    $field['#required'] = FALSE;
 
     // Unset the options to avoid validation errors
     unset($field['#options']);
