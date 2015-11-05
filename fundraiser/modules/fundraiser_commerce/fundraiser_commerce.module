@@ -852,6 +852,7 @@ function _fundraiser_commerce_zone_field_display($form, $form_state, $field) {
     // If there are no zones to match, then fall back on a non-select solution.
     $field['#type'] = 'textfield';
     $field['#required'] = FALSE;
+    $field['#size'] = 30;
 
     // Unset the options to avoid validation errors
     unset($field['#options']);
