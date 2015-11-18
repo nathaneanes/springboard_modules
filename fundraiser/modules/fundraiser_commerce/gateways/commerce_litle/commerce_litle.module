@@ -1971,6 +1971,8 @@ function commerce_litle_account_updater_supported() {
  * (but not original) sustainer charge via a credit card.
  */
 function commerce_litle_commerce_litle_request_alter(&$request, $context) {
+  dsm($request);
+  dsm($context);
   if ($context['type'] == 'cc_vault' || $context['type'] == 'echeck_vault') {
     $request['orderSource'] = 'recurring';
   }
