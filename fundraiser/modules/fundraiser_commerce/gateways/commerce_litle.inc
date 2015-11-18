@@ -207,7 +207,6 @@ function commerce_litle_fundraiser_commerce_charge($method_instance, $donation) 
       $method_instance['settings']['cardonfile'] = TRUE;
     }
     dsm($donation);
-    dsm($pane_form);
     dsm($pane_values);
     dsm($order);
     $result = commerce_litle_cc_submit_form_submit($method_instance, $pane_form, $pane_values, $order, $charge);
