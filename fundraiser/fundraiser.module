@@ -1745,8 +1745,10 @@ function fundraiser_donation_submit(&$form, &$form_state) {
  * Provided for other modules to use as needed for redirection style processes.
  */
 function _fundraiser_donation_submit_to_process($form, $form_state, $donation) {
+  dsm($donation);
   // Create the donation to process, allows other modules to modify results by hooks.
   fundraiser_donation_create($donation);
+  dsm($donation);
   $did = $donation->did;
   // Caching form values are provided ONLY for the purpose of handling redirect submissions.
   // It is intended to allow redirects to pick back up with form submission after returning to site.
