@@ -1118,6 +1118,7 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
     'payment_method' => $donation->donation['payment_method'],
     'payment_fields' => $scrubbed_fields,
   );
+  dsm($_SESSION);
   dsm($donation->donation);
   dsm($data);
 
