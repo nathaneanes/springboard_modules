@@ -1111,6 +1111,8 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
   if (isset($method_instance['scrub callback']) && function_exists($method_instance['scrub callback'])) {
     $callback = $method_instance['scrub callback'];
     $scrubbed_fields = $callback($scrubbed_fields, $donation->donation['payment_method']);
+    dsm($scrubbed_fields);
+    dsm($callback);
   }
   $data = array(
     'payment_method' => $donation->donation['payment_method'],
