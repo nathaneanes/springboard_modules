@@ -1723,7 +1723,9 @@ function fundraiser_donation_submit(&$form, &$form_state) {
   $donation->reference_charge = FALSE;
 
   // Call hook to gather submission donation values for the donation.
+  dsm($donation);
   module_invoke_all('fundraiser_donation_submit', $form, $form_state, $donation);
+  dsm($donation);
   // $donation->donation now contains the submitted values from the form.
   // Once we have a submission we can get to the real meat of things and attempt to create it.
   // This calls our set of functions to process the donation from there.
