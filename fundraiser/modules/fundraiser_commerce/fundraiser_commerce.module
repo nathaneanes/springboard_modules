@@ -818,6 +818,15 @@ function _fundraiser_commerce_zone_field_display($form, $form_state, $field) {
       }
     }
   }
+  
+  // If the 'country' field exists directly in the $form_state variable:
+  elseif (array_key_exists('country', $form_state['values'])) {
+    $country_id = $form_state['values']['country'];
+    // Filter options down to just the zones available for this country.
+    if (isset($countries->countries[$country_id])) {
+      $available_zones = $countries->countries[$country_id]->zones;
+    }
+  }
 
   // If no zones yet, load from the field settings
   if (empty($available_zones)) {
@@ -844,16 +853,22 @@ function _fundraiser_commerce_zone_field_display($form, $form_state, $field) {
       $new_zone_options[$zone->iso] = $zone->zone_name;
     }
     $field['#options'] = $new_zone_options;
+    $field['#prefix'] = '<div id="zone-select-wrapper" class="zone-select">';
+    $field['#suffix'] = '</div>';
   }
   else {
     // If there are no zones to match, then fall back on a non-select solution.
     $field['#type'] = 'textfield';
+    $field['#required'] = FALSE;
+    $field['#size'] = 30;
+    $field['#default_value'] = 'ZZZ';
+    $field['#value'] = 'ZZZ';
+    $field['#prefix'] = '<div id="zone-select-wrapper" class="zone-input">';
+    $field['#suffix'] = '</div>';
 
     // Unset the options to avoid validation errors
     unset($field['#options']);
   }
-  $field['#prefix'] = '<div id="zone-select-wrapper">';
-  $field['#suffix'] = '</div>';
   return $field;
 }
 
