@@ -2252,6 +2252,11 @@ function fundraiser_commerce_commerce_paypal_ipn_process($order, $payment_method
   // return path and not triggering anything in _fundraiser_commerce_fundraiser_donation_process_external_form_return()
   // Therefore we need to finish completion at the IPN transaction process path.
 
+  // Check if the order is an object.
+  if (!is_object($order)) {
+    return;
+  }
+  
   // We skip this step for so long as a pending is in play.
   if ($ipn['payment_status'] == 'Pending') {
     return;
@@ -2263,16 +2268,18 @@ function fundraiser_commerce_commerce_paypal_ipn_process($order, $payment_method
   }
   // Grab the donation object from the order.
   $donation = fundraiser_donation_get_donation($order->order_id);
-  // Update the donation and order data and result values based on the success.
-  _fundraiser_commerce_update_donation_result_data($donation, $success);
-  // Finish up any last cleanup for this transaction.
-  fundraiser_commerce_fundraiser_donation_after_process($donation);
-  // Save the donation
-  fundraiser_donation_update($donation);
-  // Finish up the submission to kick off success / decline triggers.
-  _fundraiser_donation_submit_after_process($donation);
-  if ($ipn['payment_status'] == 'Refunded') {
-    _fundraiser_commerce_ipn_refund($donation, $ipn);
+  if ($donation && is_object($donation)) {
+    // Update the donation and order data and result values based on the success.
+    _fundraiser_commerce_update_donation_result_data($donation, $success);
+    // Finish up any last cleanup for this transaction.
+    fundraiser_commerce_fundraiser_donation_after_process($donation);
+    // Save the donation
+    fundraiser_donation_update($donation);
+    // Finish up the submission to kick off success / decline triggers.
+    _fundraiser_donation_submit_after_process($donation);
+    if ($ipn['payment_status'] == 'Refunded') {
+      _fundraiser_commerce_ipn_refund($donation, $ipn);
+    }
   }
 }
 
