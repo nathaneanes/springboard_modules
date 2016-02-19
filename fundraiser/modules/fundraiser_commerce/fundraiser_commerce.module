@@ -2269,7 +2269,7 @@ function fundraiser_commerce_commerce_paypal_ipn_process($order, $payment_method
   }
   // Grab the donation object from the order.
   $donation = fundraiser_donation_get_donation($order->order_id);
-    if ($donation && is_object($donation)) {
+  if ($donation && is_object($donation)) {
     // Update the donation and order data and result values based on the success.
     _fundraiser_commerce_update_donation_result_data($donation, $success);
     // Finish up any last cleanup for this transaction.
