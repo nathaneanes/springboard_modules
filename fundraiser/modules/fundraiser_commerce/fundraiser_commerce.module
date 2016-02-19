@@ -2253,7 +2253,12 @@ function fundraiser_commerce_commerce_paypal_ipn_process($order, $payment_method
   // If the user executes the transaction and then abandons at Paypal, not returning to fundraiser_commerce's
   // return path and not triggering anything in _fundraiser_commerce_fundraiser_donation_process_external_form_return()
   // Therefore we need to finish completion at the IPN transaction process path.
-
+  
+  if (!is_object($order)) {
+    watchdog('fundraiser_commerce', 'Not an object');
+    return;
+  }
+  
   // We skip this step for so long as a pending is in play.
   if ($ipn['payment_status'] == 'Pending') {
     return;
