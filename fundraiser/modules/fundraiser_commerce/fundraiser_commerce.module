@@ -1105,22 +1105,15 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
     $info = _fundraiser_get_donation_gateway($donation->did);
     $method_instance = _fundraiser_gateway_info($info['id']);
   }
-  dsm($donation->donation['payment_fields']);
   $scrubbed_fields = isset($donation->donation['payment_fields']) ? $donation->donation['payment_fields'] : array();
-  dsm($donation->donation['payment_fields']);
   if (isset($method_instance['scrub callback']) && function_exists($method_instance['scrub callback'])) {
-    dsm($donation->donation['payment_fields']);
     $callback = $method_instance['scrub callback'];
     $scrubbed_fields = $callback($scrubbed_fields, $donation->donation['payment_method']);
-    dsm($callback);
-    dsm($donation->donation['payment_fields']);
   }
   $data = array(
     'payment_method' => $donation->donation['payment_method'],
     'payment_fields' => $scrubbed_fields,
   );
-  dsm($_SESSION);
-  dsm($donation->donation['payment_fields']);
 
   // There may be information already in the donation->data in the case of sustainer duplication.
   // We want to make sure this information propogates if it's available on the donation object already.
