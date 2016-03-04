@@ -924,7 +924,12 @@ function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, 
 
   $transaction->message = implode('<br />', $message);
   // Save the transaction information.
-  commerce_payment_transaction_save($transaction);
+  try {
+    commerce_payment_transaction_save($transaction);
+  }
+  catch (Exception $e) {
+    dpm($e->__toString());
+  }
 
   // If the payment failed, display an error and rebuild the form.
   if ($init->getNode($sale_response, 'response') != '000') {
@@ -1975,8 +1980,6 @@ function commerce_litle_account_updater_supported() {
  * (but not original) sustainer charge via a credit card.
  */
 function commerce_litle_commerce_litle_request_alter(&$request, $context) {
-  dsm($request);
-  dsm($context);
   if ($context['type'] == 'cc_vault' || $context['type'] == 'echeck_vault') {
     $request['orderSource'] = 'recurring';
   }
