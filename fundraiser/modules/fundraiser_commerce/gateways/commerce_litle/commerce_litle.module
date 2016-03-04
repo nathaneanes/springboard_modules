@@ -638,7 +638,13 @@ function commerce_litle_cc_submit_form_submit($payment_method, $pane_form, $pane
   $init = _commerce_litle_get_litle();
 
   // Prepare a transaction object to log the API response.
-  $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
+  try {
+    $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
+  }
+  catch (Exception $e) {
+    dpm('644');
+    dpm($e->__toString());
+  }
   $transaction->instance_id = $payment_method['instance_id'];
   $transaction->amount = $charge['amount'];
   $transaction->currency_code = $charge['currency_code'];
@@ -859,7 +865,13 @@ function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, 
   $init = _commerce_litle_get_litle();
 
   // Prepare a transaction object to log the API response.
-  $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
+  try {
+    $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
+  }
+  catch (Exception $e) {
+    dpm('870');
+    dpm($e->__toString());
+  }
   $transaction->instance_id = $payment_method['instance_id'];
   $transaction->amount = $charge['amount'];
   $transaction->currency_code = $charge['currency_code'];
