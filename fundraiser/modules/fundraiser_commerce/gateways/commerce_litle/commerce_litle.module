@@ -719,8 +719,12 @@ function commerce_litle_cc_submit_form_submit($payment_method, $pane_form, $pane
 
   $transaction->message = implode('<br />', $message);
   // Save the transaction information.
-  commerce_payment_transaction_save($transaction);
-
+  try {
+    commerce_payment_transaction_save($transaction);
+  }
+  catch (Exception $e) {
+    dpm($e->__toString());
+  }
   // If the payment failed, display an error and rebuild the form.
   if ($init->getNode($sale_response, 'response') != '000') {
     drupal_set_message(t('We received an error processing your card. Please enter your information again or try a different card.'), 'error');
