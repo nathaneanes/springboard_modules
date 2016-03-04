@@ -834,7 +834,7 @@ function commerce_litle_cc_vault_submit_form_submit($payment_method, $pane_form,
  *   Commerce Payment Status.
  */
 function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
-  dpm('charging vault');
+  watchdog('commerce_litle', 'charging vault');
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   $txn_type = COMMERCE_CREDIT_AUTH_CAPTURE;
 
@@ -873,19 +873,19 @@ function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, 
     $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
   }
   catch (Exception $e) {
-    dpm('870');
+    watchdog('commerce_litle', 'exception');
     dpm($e->__toString());
   }
   $transaction->instance_id = $payment_method['instance_id'];
   $transaction->amount = $charge['amount'];
   $transaction->currency_code = $charge['currency_code'];
   // Save the transaction information to get transaction id.
-  dpm('we got to 879');
+  watchdog('commerce_litle', 'we got to 879');
   try {
     commerce_payment_transaction_save($transaction);
   }
   catch (Exception $e) {
-    dpm('line 869');
+    watchdog('commerce_litle', 'exception 888');
     dpm($e->__toString());
   }
   $request_data['id'] = substr($transaction->transaction_id, 0, 20);
