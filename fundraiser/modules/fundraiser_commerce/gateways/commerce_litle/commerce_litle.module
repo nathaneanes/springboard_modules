@@ -574,7 +574,7 @@ function commerce_litle_echeck_submit_form_validate($payment_method, $pane_form,
  * Payment method callback: checkout form submission.
  */
 function commerce_litle_cc_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
-  dpm('charging card');
+  watchdog('commerce_litle', 'charging card');
   // If the customer specified payment using a card on file, attempt that now
   // and simply return the result.
   if (module_exists('commerce_cardonfile') && $payment_method['settings']['cardonfile'] &&
@@ -733,7 +733,7 @@ function commerce_litle_cc_submit_form_submit($payment_method, $pane_form, $pane
 
   $transaction->message = implode('<br />', $message);
   // Save the transaction information.
-  dpm('we got to 735');
+  watchdog('commerce_litle', 'we got to 735');
   try {
     commerce_payment_transaction_save($transaction);
   }
