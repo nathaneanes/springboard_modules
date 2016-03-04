@@ -574,6 +574,7 @@ function commerce_litle_echeck_submit_form_validate($payment_method, $pane_form,
  * Payment method callback: checkout form submission.
  */
 function commerce_litle_cc_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
+  dpm('charging card');
   // If the customer specified payment using a card on file, attempt that now
   // and simply return the result.
   if (module_exists('commerce_cardonfile') && $payment_method['settings']['cardonfile'] &&
@@ -833,6 +834,7 @@ function commerce_litle_cc_vault_submit_form_submit($payment_method, $pane_form,
  *   Commerce Payment Status.
  */
 function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
+  dpm('charging vault');
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   $txn_type = COMMERCE_CREDIT_AUTH_CAPTURE;
 
