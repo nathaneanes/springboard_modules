@@ -183,6 +183,7 @@ function commerce_litle_fundraiser_commerce_validate($submission_fields, $paymen
  * Submit the donation values to the Litle charge handler.
  */
 function commerce_litle_fundraiser_commerce_charge($method_instance, $donation) {
+  dpm('charging card 186');
   module_load_include('inc', 'fundraiser_commerce', 'includes/fundraiser_commerce.credit_card');
   // Translate from donation settings to the correct values for the plugin.
   $order = commerce_order_load($donation->did);
