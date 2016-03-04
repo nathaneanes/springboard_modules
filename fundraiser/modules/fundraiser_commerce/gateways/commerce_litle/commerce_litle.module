@@ -574,7 +574,6 @@ function commerce_litle_echeck_submit_form_validate($payment_method, $pane_form,
  * Payment method callback: checkout form submission.
  */
 function commerce_litle_cc_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
-  watchdog('commerce_litle', 'charging card');
   // If the customer specified payment using a card on file, attempt that now
   // and simply return the result.
   if (module_exists('commerce_cardonfile') && $payment_method['settings']['cardonfile'] &&
@@ -639,25 +638,12 @@ function commerce_litle_cc_submit_form_submit($payment_method, $pane_form, $pane
   $init = _commerce_litle_get_litle();
 
   // Prepare a transaction object to log the API response.
-  dpm('we got to 641');
-  try {
-    $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
-  }
-  catch (Exception $e) {
-    dpm('644');
-    dpm($e->__toString());
-  }
+  $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
   $transaction->instance_id = $payment_method['instance_id'];
   $transaction->amount = $charge['amount'];
   $transaction->currency_code = $charge['currency_code'];
   // Save the transaction information to get transaction id.
-  try {
-    commerce_payment_transaction_save($transaction);
-  }
-  catch (Exception $e) {
-    dpm('650');
-    dpm($e->__toString());
-  }
+  commerce_payment_transaction_save($transaction);
   $nvp['id'] = substr($transaction->transaction_id, 0, 20);
 
   // Allow modules to alter the values sent to Litle.
@@ -733,14 +719,8 @@ function commerce_litle_cc_submit_form_submit($payment_method, $pane_form, $pane
 
   $transaction->message = implode('<br />', $message);
   // Save the transaction information.
-  watchdog('commerce_litle', 'we got to 735');
-  try {
-    commerce_payment_transaction_save($transaction);
-  }
-  catch (Exception $e) {
-    dpm('732');
-    dpm($e->__toString());
-  }
+  commerce_payment_transaction_save($transaction);
+  
   // If the payment failed, display an error and rebuild the form.
   if ($init->getNode($sale_response, 'response') != '000') {
     drupal_set_message(t('We received an error processing your card. Please enter your information again or try a different card.'), 'error');
@@ -834,7 +814,6 @@ function commerce_litle_cc_vault_submit_form_submit($payment_method, $pane_form,
  *   Commerce Payment Status.
  */
 function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, $order, $charge = NULL) {
-  watchdog('commerce_litle', 'charging vault');
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   $txn_type = COMMERCE_CREDIT_AUTH_CAPTURE;
 
@@ -869,25 +848,12 @@ function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, 
   $init = _commerce_litle_get_litle();
 
   // Prepare a transaction object to log the API response.
-  try {
-    $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
-  }
-  catch (Exception $e) {
-    watchdog('commerce_litle', 'exception');
-    dpm($e->__toString());
-  }
+  $transaction = commerce_payment_transaction_new('commerce_litle_cc', $order->order_id);
   $transaction->instance_id = $payment_method['instance_id'];
   $transaction->amount = $charge['amount'];
   $transaction->currency_code = $charge['currency_code'];
   // Save the transaction information to get transaction id.
-  watchdog('commerce_litle', 'we got to 879');
-  try {
-    commerce_payment_transaction_save($transaction);
-  }
-  catch (Exception $e) {
-    watchdog('commerce_litle', 'exception 888');
-    dpm($e->__toString());
-  }
+  commerce_payment_transaction_save($transaction);
   $request_data['id'] = substr($transaction->transaction_id, 0, 20);
 
   // Allow modules to alter the values sent to Litle.
@@ -954,14 +920,7 @@ function commerce_litle_cc_vault_cardonfile_charge($payment_method, $card_data, 
 
   $transaction->message = implode('<br />', $message);
   // Save the transaction information.
-  watchdog('commerce_litle', 'we got to 957');
-  try {
-    commerce_payment_transaction_save($transaction);
-  }
-  catch (Exception $e) {
-    watchdog('commerce_litle', 'exception 962');
-    watchdog('commerce_litle', $e->__toString());
-  }
+  commerce_payment_transaction_save($transaction);
 
   // If the payment failed, display an error and rebuild the form.
   if ($init->getNode($sale_response, 'response') != '000') {
@@ -1040,13 +999,7 @@ function commerce_litle_echeck_submit_form_submit($payment_method, $pane_form, $
   $transaction->amount = $charge['amount'];
   $transaction->currency_code = $charge['currency_code'];
   // Save the transaction information to get transaction id.
-  try {
-    commerce_payment_transaction_save($transaction);
-  }
-  catch (Exception $e) {
-    dpm('line 1027');
-    dpm($e->__toString());
-  }
+  commerce_payment_transaction_save($transaction);
   $nvp['id'] = substr($transaction->transaction_id, 0, 20);
 
   // Allow modules to alter the values sent to Litle.
@@ -1137,13 +1090,7 @@ function commerce_litle_echeck_submit_form_submit($payment_method, $pane_form, $
 
   $transaction->message = implode('<br />', $message);
   // Save the transaction information.
-  try {
-    commerce_payment_transaction_save($transaction);
-  }
-  catch (Exception $e) {
-    dpm('1124');
-    dpm($e->__toString());
-  }
+  commerce_payment_transaction_save($transaction);
 
   // If the payment failed, display an error and rebuild the form.
   if ($init->getNode($sale_response, 'response') != '000') {
@@ -1274,13 +1221,7 @@ function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_da
   $transaction->amount = $charge['amount'];
   $transaction->currency_code = $charge['currency_code'];
   // Save the transaction information to get transaction id.
-  try {
-    commerce_payment_transaction_save($transaction);
-  }
-  catch (Exception $e) {
-    dpm('1261');
-    dpm($e->__toString());
-  }
+  commerce_payment_transaction_save($transaction);
   $request_data['id'] = substr($transaction->transaction_id, 0, 20);
     
   // Allow modules to alter the values sent to Litle.
@@ -1330,13 +1271,7 @@ function commerce_litle_echeck_vault_cardonfile_charge($payment_method, $card_da
 
   $transaction->message = implode('<br />', $message);
   // Save the transaction information.
-  try {
-    commerce_payment_transaction_save($transaction);
-  }
-  catch (Exception $e) {
-    dpm('1317');
-    dpm($e->__toString());
-  }
+  commerce_payment_transaction_save($transaction);
 
   // If the payment failed, display an error and rebuild the form.
   if ($init->getNode($sale_response, 'response') != '000') {
