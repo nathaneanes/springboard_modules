@@ -1105,7 +1105,8 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
     $info = _fundraiser_get_donation_gateway($donation->did);
     $method_instance = _fundraiser_gateway_info($info['id']);
   }
-  $scrubbed_fields = isset($donation->donation['payment_fields']) ? $donation->donation['payment_fields'] : array();
+  $donation_copy = _fundraiser_donation_copy($donation);
+  $scrubbed_fields = isset($donation_copy->donation['payment_fields']) ? $donation_copy->donation['payment_fields'] : array();
   if (isset($method_instance['scrub callback']) && function_exists($method_instance['scrub callback'])) {
     $callback = $method_instance['scrub callback'];
     $scrubbed_fields = $callback($scrubbed_fields, $donation->donation['payment_method']);
