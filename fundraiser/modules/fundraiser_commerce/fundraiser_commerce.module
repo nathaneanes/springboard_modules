@@ -978,8 +978,8 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
   // Go by the logged in user first, unless user is anon or not set.
   $user = $donation->user;
   if ($user->uid < 1) {
-    // Check by email, see if this account is already in existance.
-    $user = user_load_by_mail( $donation->donation['mail'] );
+    // Check by email, see if this account is already in existence.
+    $user = user_load(bitch_base_get_uid_from_mail($donation->donation['mail']));
     if (empty($user->uid)) {
       // If not, create a new user account, and add it to the donation.
       $donation->donation['mail'] = trim($donation->donation['mail']);
