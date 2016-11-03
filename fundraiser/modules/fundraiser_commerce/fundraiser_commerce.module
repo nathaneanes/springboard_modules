@@ -980,7 +980,7 @@ function fundraiser_commerce_fundraiser_donation_create($donation) {
   if ($user->uid < 1) {
     // Check by email, see if this account is already in existence.
     $user = user_load(bitch_base_get_uid_from_mail($donation->donation['mail']));
-    if (empty($user->uid)) {
+    if (!is_object($user) || empty($user->uid)) {
       // If not, create a new user account, and add it to the donation.
       $donation->donation['mail'] = trim($donation->donation['mail']);
       $fields = array(
