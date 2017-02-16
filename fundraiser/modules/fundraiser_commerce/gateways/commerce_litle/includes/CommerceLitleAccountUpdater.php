@@ -266,7 +266,10 @@ class CommerceLitleAccountUpdater {
    */
   protected function updateBillingInfo($master_donation, array $submission_fields, $processed_donation) {
     // Use the just-processed donation to create new donations if needed.
-    fundraiser_sustainers_update_billing_info_create_new_donations($master_donation, $processed_donation, $submission_fields);
+    if (module_exists('bitch_springboard')) {
+      bitch_springboard_update_billing_info_create_new_donations($master_donation, $processed_donation, $submission_fields);
+      bitch_springboard_create_membership_updated_message_entity($master_donation, $processed_donation, 'account_updater');
+    }
 
     // Now grab the remaining unprocessed donations and update their
     // billing info.
