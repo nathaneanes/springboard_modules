@@ -1966,3 +1966,15 @@ function commerce_litle_fundraiser_sustainers_series_end_date_alter(&$end_date, 
 function commerce_litle_account_updater_supported() {
   return module_exists('fundraiser_sustainers') && module_exists('commerce_cardonfile');
 }
+
+/**
+ * Implements hook_commerce_litle_request_alter().
+ *
+ * Change the orderSource to recurring if this is a recurring
+ * (but not original) sustainer charge via a credit card.
+ */
+function commerce_litle_commerce_litle_request_alter(&$request, $context) {
+  if ($context['type'] == 'cc_vault' || $context['type'] == 'echeck_vault') {
+    $request['orderSource'] = 'recurring';
+  }
+}
