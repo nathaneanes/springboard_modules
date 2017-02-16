@@ -2748,6 +2748,11 @@ function fundraiser_sustainers_change_charge_date($master_did, $new_day) {
       $order = commerce_order_load($donation->did);
       $order->revision = TRUE;
       $order->log = $message;
+      if (module_exists('bitch_springboard')) {
+        $new_date = date('m/', $old_charge_date) . str_pad($new_day, 2, '0', STR_PAD_LEFT) . date('/Y', $old_charge_date);
+        $new_date = strtotime($new_date);
+        $order = bitch_springboard_update_orig_chargedate($order, $new_date, FALSE);
+      }
       commerce_order_save($order);
 
       // update sf queue.
@@ -2935,6 +2940,10 @@ function fundraiser_sustainers_update_billing_info_in_series($donations, $submis
  *
  */
 function _fundraiser_sustainers_create_future_orders($donation, $month, $year, $source_donation = NULL, $start = NULL) {
+  
+  // Hook to allow other modules to execute code upon the creation of future orders.
+  module_invoke_all('fundraiser_sustainers_create_future_orders', $donation, $month, $year, $source_donation, $start);
+  
   // Handle the rest of the set based on the given donation.
   if (is_null($start)) {
     $start = strtotime("now");
@@ -3782,6 +3791,11 @@ function _fundraiser_sustainers_create_recurring($donation) {
     $record['new_state'] = isset($record['gateway_resp']) ? $record['gateway_resp'] : 'scheduled';
     $log = fundraiser_sustainers_log();
     $log->log($record);
+    
+    // Add the original charge date.
+    if (module_exists('bitch_springboard')) {
+      bitch_springboard_update_orig_chargedate($donation['did'], $record['next_charge'], TRUE);
+    }
 
   }
   else {
@@ -3854,8 +3868,9 @@ function _fundraiser_sustainers_get_donation_sets_recurr_by_uid($uid) {
   $donation_sets = db_query('SELECT r.master_did, MIN(r.next_charge) AS start_date, ' .
     'MAX(r.next_charge) AS expire_date FROM {fundraiser_sustainers} r ' .
     'LEFT JOIN {fundraiser_donation} d on r.did = d.did ' .
-    'WHERE d.uid = :uid GROUP BY r.master_did ORDER BY r.master_did DESC',
-     array(':uid' => $uid))->fetchAll();
+    'WHERE d.uid = :uid and d.status <> :removed and d.status <> :failed ' .
+    'GROUP BY r.master_did ORDER BY r.master_did DESC',
+     array(':uid' => $uid, ':removed' => 'payment_method_removed', ':failed' => 'failed'))->fetchAll();
   foreach ($donation_sets as $index => $donation_set) {
     $next_charge = _fundraiser_sustainers_get_donations_next_charge($donation_set->master_did);
     if (isset($next_charge->next_charge)) {
