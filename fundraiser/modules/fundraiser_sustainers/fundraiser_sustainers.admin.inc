@@ -70,7 +70,7 @@ function fundraiser_sustainers_admin_view($did) {
   // Get the data.
   $donation = fundraiser_donation_get_donation($did);
   if (module_exists('devel')) {
-    dsm($donation);
+    dpm($donation);
   }
   $donation_set = _fundraiser_sustainers_get_donations_recurr_by_member($did);
   if ($donation_set) {
