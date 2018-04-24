@@ -2303,6 +2303,7 @@ function fundraiser_sustainers_cancel_form_submit($form, &$form_state) {
 function fundraiser_sustainers_fundraiser_donation_get_donation($donation) {
   // Add recurring data to the fundraiser donation.
   $recurring = _fundraiser_sustainers_get_recurring_by_did($donation->did);
+  dpm($recurring);
   if ($recurring) {
     $donation->recurring = $recurring;
     // Skip this for the master donation
