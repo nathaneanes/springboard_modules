@@ -2387,7 +2387,16 @@ function fundraiser_sustainers_fundraiser_donation_success($donation) {
             if (function_exists($expiration_func)) {
               $expires = $expiration_func($donation->donation, $info);
               if (isset($expires['month']) && isset($expires['year'])) {
-                _fundraiser_sustainers_create_future_orders($donation, $expires['month'], $expires['year']);
+                
+                // Addd by Nathan: queue creation of new Springboard orders.
+                $q = DrupalQueue::get('bitch_springboard_create_sustainer_series_from_express_form', TRUE);
+                $item = array(
+                  'donation' => $donation,
+                  'expires' => $expires,
+                );
+                $q->createItem($item);
+                dpm($item);
+                //_fundraiser_sustainers_create_future_orders($donation, $expires['month'], $expires['year']);
               }
             }
           }
